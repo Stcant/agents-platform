@@ -17,5 +17,11 @@
   "confirmed_facts": [],
   "hypotheses": [],
   "blockers": [],
-  "next_action": ""
+  "next_action": "",
+  "plan": [],
+  "relevant_failed_attempts": [],
+  "documents": {
+    "map": "harness/PROJECT_MAP.md",
+    "plan": null
+  }
 }

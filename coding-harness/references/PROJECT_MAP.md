@@ -22,7 +22,7 @@ Treat these phrases as instructions within the skill, not new client commands:
 | `CHANGE IMPACT <proposed change>` | Inspect the proposed change's affected sources, contracts, direct consumers, and existing checks; change no files and run no checks. |
 | `PROJECT MAP LEARN` | Produce a read-only map for someone unfamiliar with the stack, explaining source-level concepts along one real flow. |
 | `PROJECT MAP <area or question>` | Map the named subsystem or flow, its direct dependencies, and affected consumers. |
-| `PROJECT MAP SAVE` | Inspect and save a project map using existing documentation conventions, or `docs/PROJECT_MAP.md` when none exist. |
+| `PROJECT MAP SAVE` | Inspect and save a project map using existing documentation conventions, or `harness/PROJECT_MAP.md` when none exist. |
 | `PROJECT MAP UPDATE` | Refresh an existing saved map against current sources; preserve user notes and unrelated documentation. If no saved map exists, explain that and offer a read-only map rather than creating one. |
 
 Equivalent natural-language requests are valid. Use LEARN when requested or when the user explicitly says they are unfamiliar with the stack. LEARN may be combined with a named area or an explicit SAVE/UPDATE request; it does not grant write permission by itself. A request to save or update authorizes the map document only, not code changes, Git writes, services, or a project-state update. Keep the reusable skill and its templates unchanged.
@@ -30,7 +30,7 @@ Equivalent natural-language requests are valid. Use LEARN when requested or when
 ## Inspect in Layers
 
 1. **Establish scope.** Read project instructions, the current request, and relevant existing architecture or state documents. Inspect branch, revision, and local changes when available. Explain remote-only or partial access. If no scope is specified, start with a system overview.
-2. **Inventory the project.** Search directory names, documentation indexes, manifests, lockfiles, safe configuration examples, entry points, build/deployment definitions, and test locations. Exclude generated output, vendored dependencies, binary assets, and unrelated large files. Find top-level applications and packages before expanding one area.
+2. **Inventory the project.** Search directory names, documentation indexes, manifests, lockfiles, safe configuration examples, entry points, build/deployment definitions, and test locations. Exclude generated output, vendored dependencies, binary assets, skill snapshots/backups, and unrelated large files. Find top-level applications and packages before expanding one area.
 3. **Trace real connections.** Follow imports, callers, routes, interfaces, data models, migrations, worker registration, and message producers/consumers. A dependency declaration, comment, unused adapter, or deployment setting alone does not prove an implemented or active connection.
 4. **Follow a useful flow.** Trace one representative user action, job, or data operation through its entry point, business logic, storage, and external boundaries where present. Include relevant failure behavior, consistency boundaries, and handoffs. For a focused request, follow the requested flow instead.
 5. **Explain and bound the result.** Connect technical details to their purpose in plain language. Record evidence and unknowns, identify what was inspected, and stop when the requested scope is understandable. Do not scan every source file or claim exhaustive coverage from a representative trace.
@@ -39,7 +39,7 @@ For a large repository, first provide a compact component index and a main flow.
 
 ## What to Explain
 
-- **Purpose and current work:** what the project does, the current request, and work evidenced by project state or the inspected diff. Distinguish a recorded plan from implemented behavior. When current work is unavailable or stale, say so rather than inventing progress.
+- **Purpose and current work:** explain the project's stable purpose. In a response, relate the current request to actual state/diff when useful. In a saved map, link canonical state for active work instead of copying goals, plans, progress, or test results; preserve imported user notes until an explicit reconciliation.
 - **Technologies and roles:** important languages, frameworks, storage, build/test tools, and deployment components. Distinguish runtime from development-only dependencies and local from deployment configuration. Label declared version constraints and resolved versions separately; do not infer the running version. Explain why a technology was chosen only when a source documents the reason.
 - **Components and entry points:** each major component's responsibility, source location, and public entry point or interface. Explain domain terms that the user needs to follow the flow.
 - **Connections and contracts:** who calls or produces for whom, the mechanism, contract or data shape, and supporting path or symbol. Distinguish source-observed wiring, configuration-only possibilities, and unknown runtime activation.
@@ -89,9 +89,9 @@ Keep reusable templates anonymous. In generated project maps, use relative paths
 
 ## Save and Refresh
 
-For SAVE, reuse an established architecture-map location; otherwise initialize `docs/PROJECT_MAP.md` from [Map Template](../assets/templates/PROJECT_MAP.md). The template is a blank scaffold, not evidence. Fill only applicable sections, remove unused placeholders, and keep unknown facts explicit. The map belongs in the target project, outside the installed skill.
+For SAVE, reuse an established architecture-map location; otherwise initialize `harness/PROJECT_MAP.md` from [Map Template](../assets/templates/PROJECT_MAP.md). The template is a blank scaffold, not evidence. Fill only applicable sections, remove unused placeholders, and keep unknown facts explicit. The map belongs in the target project, outside the installed skill.
 
-Record scope, actual inspection time, inspected revision or its unavailability, and relevant local changes. Never substitute a commit identifier for an inspected working tree with uncommitted changes. Keep architecture separate from the operational project checkpoint; link an existing checkpoint only when useful.
+Record scope, actual inspection time, inspected revision or its unavailability, and relevant local changes. Never substitute a commit identifier for an inspected working tree with uncommitted changes. Keep architecture separate from the operational checkpoint. Link canonical state and retain stable source-supported facts/decisions; do not add a session diary or current-task progress. Startup creates this stable role through [Continuity](CONTINUITY.md#startup-and-roles).
 
 For UPDATE, read the saved map and its sources. Use the recorded revision and diff when available to focus inspection, then follow changed contracts into direct consumers. Recheck affected claims and diagram edges; retain unchanged, supported context without starting the entire inventory again. If the baseline is unavailable, state the limitation and inspect the current mapped scope.
 

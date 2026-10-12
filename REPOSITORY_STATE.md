@@ -1,57 +1,49 @@
 # Repository State
 
-Updated: 2026-10-08T07:43:06.936Z
-Branch context: existing source branch; inspect the actual ref before resuming maintenance.
+Updated: 2026-10-12T13:46:13.868Z
+Branch context: existing source branch; inspect the actual ref before maintenance.
 Access context: connected GitHub repository; local checkout status unavailable.
 
-## Current Objective
+## Objective and Task
 
-Maintain an instruction-only development skill with anonymous English guidance, proportionate engineering, truthful verification, project orientation, and a complete portable project-local harness.
+Maintain anonymous English, instruction-only development guidance with proportionate engineering, truthful verification, and minimal portable project context.
 
-## Current Task and Status
+TASK-019 — verified
 
-TASK-018 — verified
+Requirement: reduce automatic project files while preserving planning, review, debugging, mapping/learning, verification, checkpoints, and resumption.
 
-Requirement: inspect superpowers for useful missing workflow ideas and improve planning, code-review handling, and debugging in this skill.
+## Changes
 
-## Completed Changes
+- Default START creates/reuses only canonical state and a stable map.
+- PORTABLE explicitly adds a complete ten-file reusable snapshot; fresh minimal/portable setups contain two/twelve files.
+- Consolidate startup/state/health/resume/migration/retention in Continuity and design/planning/review in Workflow.
+- Reduce reusable source from sixteen to ten files, with four references; entry point is 57 lines.
+- Keep active plans, evidence, relevant failed attempts, blockers, and next steps in state; keep stable knowledge and decisions in the map.
+- Keep a detailed record or long linked plan optional. Preserve existing formats, records, notes, evidence, and snapshots.
+- Add explicit HARNESS MIGRATE reconciliation without automatic deletion; document snapshot recovery and retention boundaries.
+- Extend schema-version-1 state with optional plan, failure-context, and document-pointer fields while supporting older checkpoints.
+- Update README and manual start prompt; preserve client installation/update shell blocks.
 
-- Inspect superpowers at revision 8ca22dba9a94f28898bbce59f2537ff4d87c747d, including design, planning, execution, review reception, debugging, and meaningful-test guidance.
-- Add optional DESIGN and PLAN requests with source-grounded requirements, real tradeoffs, exact shared contracts, and observable checks.
-- Keep design/plan-only requests read-only. SAVE changes requested project-record sections only and does not initialize an entire kit or application.
-- Describe at most five active deliverables, each containing its own test/implementation/documentation/check cycle, rather than disconnected activity lists.
-- Check producer/consumer names, prerequisites, criterion coverage, expected outcomes, and material plan deviations.
-- Review required behavior separately from engineering quality; identify omitted requirements even when existing tests do not cover them.
-- Evaluate received feedback against current code and contracts before applying requested fixes. Preserve used validation/compatibility and continue independent supported work.
-- Strengthen debugging with backward tracing, comparison to a working path, safe component-boundary diagnostics, and correction at the responsible source.
-- Require regression evidence for the intended failure; distinguish setup errors, already-passing checks, implementation-derived expectations, and mocked results.
-- Extend the existing project record instead of adding a required project file or state schema. Update routing, templates, English README examples, source attribution, and generic start prompt.
-- Keep the main skill at 75 lines and the reusable package at sixteen files. Add no runtime, scripts, hooks, dependencies, automatic agents/worktrees, or blanket approval stages.
-- Preserve existing complete startup, continuity/map modes, client installation procedures, and project-specific context boundaries.
+## Evidence
 
-## Verification Evidence
-
-| Action | Result | Timestamp | Scope and Limits |
+| Check | Result | Observed at | Scope |
 | --- | --- | --- | --- |
-| Resolve source links/anchors; inspect package boundaries, anonymous English text, whitespace, and compact entry point | PASS: 102 links, twenty source files, sixteen reusable skill files | 2026-10-08T07:36:34.451Z | Static source checks; no application certification |
-| Parse frontmatter, invocation metadata, and JSON template; compare client shell blocks to baseline | PASS | 2026-10-08T07:36:34.451Z | Metadata and unchanged install/update commands |
-| Initial fresh-agent PLAN pass | Found an activity-list plan despite the intended deliverable contract; tightened grouping, shared names, table output, and plan self-review | 2026-10-08T07:41:12.518Z | Forward-test finding informed the final instructions |
-| New fresh-agent PLAN pass with revised artifact | PASS: two useful deliverables, consistent proposed contracts, dependencies, expected checks, and pending state; no files or Git head changed | 2026-10-08T07:41:12.518Z | Source-only planning; no application checks |
-| Fresh-agent PLAN SAVE with revised artifact | PASS: only harness/PROJECT_RECORD.md created; all ten original files preserved; checks remain NOT RUN | 2026-10-08T07:41:12.518Z | No startup, state, dependencies, or application edits |
-| Fresh-agent applied mixed review feedback | PASS: fixed zero/default pagination, retained validation, preserved stable machine error code while adding readable text; six local tests passed | 2026-10-08T07:41:12.518Z | Existing project record/state updated; notes, map, snapshot, and head preserved |
-| Fresh-agent investigated an import failure crossing extractor/persistence boundaries | PASS: wrong output field corrected at extractor; expected regression failure observed; five local tests passed; persistence guard and preview path preserved | 2026-10-08T07:41:12.518Z | Local in-memory storage only; no real external integration |
-| Fresh-agent reviewed cancellation against current contracts | PASS: missing ownership enforcement and repeated-save/idempotency behavior identified despite narrow existing tests; no files or Git head changed | 2026-10-08T07:41:12.518Z | Read-only review; no checks or initialization |
+| Resolve source links/anchors and inspect anonymous text, whitespace, and package boundaries | PASS: 87 links and fourteen source files | 2026-10-12T13:36:39.189Z | Static documentation |
+| Parse frontmatter, metadata, JSON state and compare existing client shell blocks | PASS | 2026-10-12T13:42:45.285Z | Ten-file package; no global installation |
+| Fresh bare invocation, repeated START, and HARNESS STATUS | PASS: only two context files; repeat/status unchanged | 2026-10-12T13:42:45.285Z | Disposable project; pending without a goal |
+| START PORTABLE JSON LEARN and repeated PORTABLE | PASS: twelve new files; snapshot exactly matches all ten selected source files; repeat unchanged | 2026-10-12T13:42:45.285Z | No application checks |
+| PLAN SAVE | PASS: only canonical state created with plan/criteria and unperformed checks explicit | 2026-10-12T13:42:45.285Z | No application edits or full startup |
+| Legacy START followed by HARNESS MIGRATE | PASS: reused external JSON state; reconciled only state/map; notes, record, historical context and old snapshot preserved; required rollback remains NOT RUN | 2026-10-12T13:42:45.285Z | Unsupported implementation flagged; no files deleted |
+| Minimal RESUME | PASS: regression reproduced, currency helper fixed, two configured local tests passed; only source/checkpoint changed | 2026-10-12T13:42:45.285Z | Local fixture; map and failed-attempt context preserved |
 
-Behavioral passes used fresh agents, the source artifact, and normal task requests. File inventories, contents, original notes, and Git heads were compared independently with fixture baselines. The revised design/plan guidance was retested; unrelated successful checks were not repeated.
+Fresh agents received the source artifact and normal task requests. Original files, inventories, canonical criteria, notes, and snapshot contents were compared independently with baselines. Tests certify workflow behavior in disposable fixtures, not another application's integrations.
 
-## Blockers and Limits
+## Next Action and Limits
 
-None for the source update. Plans and read-only reviews establish source findings and proposed checks, not runtime correctness. Applied fixes in disposable fixtures demonstrate workflow behavior and do not certify another project's application or services. Feedback must be evaluated in the actual project; missing external consumers are not proof that a public contract is unused. Copied personal installations and project-local skill snapshots require their own update.
+Update the installed source copy. Use START for minimal context, START PORTABLE for explicit standalone distribution, or HARNESS MIGRATE to reconcile an old kit. Migration preserves originals until retirement is separately requested and their content/pointers are accounted for.
 
-## Next Action
-
-Update the installed source copy. Use DESIGN or PLAN for a proposal, SAVE only for requested record sections, and REVIEW FEEDBACK to assess comments. For authorized implementation, execute complete deliverables with meaningful verification and preserve current project conventions.
+Existing projects are not remotely modified by this source update. Copied installations and snapshots need their own refresh. Context files alone do not provide skill instructions without an installed/provided source.
 
 ## Authorization
 
-The established source-update scope and current improvement request authorize edits on the existing branch. No history rewriting, branch changes, personal installation, deployment, external messages, or application changes elsewhere are included.
+Current modification approval and established source-update scope cover this update on the existing branch. No history rewriting, branch changes, personal installation, external messages, deployment, or unrelated application edits are included.

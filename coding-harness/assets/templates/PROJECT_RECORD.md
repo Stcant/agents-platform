@@ -1,54 +1,31 @@
-# Project Record
+# Optional Project Record
 
-Use only sections needed for nontrivial work; reuse existing project documents instead when available.
+Create only for an explicitly requested detailed session record or a long/independent plan that needs its own document. Reuse existing conventions; link this record from canonical state. It is not a second operational checkpoint.
 
-## Brief and Acceptance Criteria
+## Scope and Context
 
-[Goal, audience, first useful workflow, observable success and failure cases]
-[Established stack, compatibility/data constraints, assumptions, and exclusions]
+[Task/plan identity, goal, actual inspection time and source context]
+[Preserve user notes and prior evidence; omit unnecessary sections]
 
-## Design
+## Design or Executable Plan
 
-[Proposed behavior and affected responsibilities/contracts; observed facts versus assumptions]
-[Meaningful alternatives and selected rationale only when a real tradeoff exists]
-[Blocking choices and compatibility, data, authorization, or failure constraints; omit when unnecessary]
+[Requirements, exclusions, assumptions, and material tradeoffs when requested]
 
-## Plan
-
-[At most five active steps headed by working behavior; keep each deliverable's test/implementation/documentation/check cycle together. Name shared interfaces consistently. Planned checks are not verification evidence.]
-
-| Step / deliverable | Criteria and paths | Inputs / outputs | Dependencies | Check and expected result | Status |
+| Deliverable | Criteria / paths | Shared inputs and outputs | Dependencies | Check and expected result | Status |
 | --- | --- | --- | --- | --- | --- |
-| [useful outcome] | [criterion IDs; existing paths or labeled new paths] | [shared signature/data contract and required exact values] | [earlier deliverable or prerequisite] | [existing command/check; intended observable result or unavailable prerequisite] | [pending / in_progress / implemented / verified / blocked] |
+| [complete working behavior] | [actual paths; new paths labeled] | [consistent exact contract] | [prerequisite] | [planned check; not a PASS] | [actual status] |
 
-[Check producer/consumer consistency and coverage of required behavior before execution. Preserve the full goal when working in slices.]
+## Requested History and Evidence
 
-## Execution Decisions
+| Criterion / event | Action and result | Actual time / source context | Scope and limitations |
+| --- | --- | --- | --- |
+| [required behavior or relevant attempt] | [performed action; PASS / FAIL / NOT RUN with reason] | [observed time/revision or unknown] | [what this establishes] |
 
-[Material plan deviation, source evidence, reason, affected interfaces, and remaining work; omit when none]
+## Decisions and Open Work
 
-## Architecture and Decisions
+[Documented rationale, corrections, relevant failed approaches, unresolved checks]
+[Link canonical state for the active next action; do not maintain a second task status]
 
-[Actual components, responsibilities, and affected contracts]
-[Significant choice, rationale, impact, alternatives if relevant, and follow-up]
+## Retention
 
-## Verification Evidence
-
-| Task / Criterion | Command or Action | Result | Timestamp | Scope | Level | Limitations |
-| --- | --- | --- | --- | --- | --- | --- |
-| [criterion] | [actual check] | [PASS / FAIL / NOT RUN] | [ISO-8601] | [behavior] | [targeted / regression / integration / manual] | [limits] |
-
-## Review Findings and Disposition
-
-[Requirement or engineering finding; path, trigger, impact, evidence, and resolution]
-[Received feedback: supported / unsupported / needs context / out of scope; fixed, declined, deferred, or remaining]
-[Unperformed review/checks and unresolved required work remain explicit; omit unused sections]
-
-## Known Failures
-
-[Pre-existing issue, evidence, impact, and resume condition; omit if none]
-
-## Optional Reusable Findings
-
-[Repeatable project lesson, evidence/source, applicability, and limitations]
-[Record only when useful; keep task-specific observations out of global skill rules]
+[Keep necessary evidence until a durable reviewed reference exists. Promote useful stable knowledge into established project docs when authorized. Do not auto-delete notes or records.]

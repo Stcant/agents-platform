@@ -1,26 +1,18 @@
 # Start or Resume Development
 
-Read [coding-harness/SKILL.md](coding-harness/SKILL.md) and follow its workflow for this task. Read project instructions first and load detailed references only when relevant.
+Read [coding-harness/SKILL.md](coding-harness/SKILL.md), applicable project instructions, and the current request. Load detailed references only as needed.
 
-## Startup
+Use START for minimal project context: one canonical state and one stable map, reusing established equivalents. Default new documents are harness/PROJECT_STATE.md and harness/PROJECT_MAP.md. Add PORTABLE only when a complete project-local skill copy is requested; add JSON or LEARN when useful.
 
-Initialize or reuse the complete harness/ kit through the skill's START workflow before development: index, local guidance, canonical state, plan/decision/verification record, source-backed project map, and a reusable local skill copy. Preserve existing notes and conventions. Keep default writes below harness/ and create only missing equivalents. Add LEARN for unfamiliar-stack explanations.
+DESIGN, PLAN, review/feedback assessment, HARNESS STATUS, and unsaved mapping stay read-only. SAVE writes the requested document only. RESUME reconciles existing context before continuing a valid unfinished task; HARNESS MIGRATE consolidates legacy facts without automatic deletion.
 
-Use DESIGN or PLAN for a read-only proposal, add SAVE for requested record sections, and use REVIEW FEEDBACK to assess suggestions against current code. These modes do not authorize application changes or execution. Use HARNESS STATUS for a read-only kit audit, RESUME to reconcile existing work before continuing, or CHANGE IMPACT followed by a proposal for read-only impact analysis. These requests do not trigger startup; read-only requests create no files.
+- Goal and first useful outcome: [current requirement]
+- Acceptance and failure cases: [observable criteria]
+- Constraints and exclusions: [compatibility, data, performance, and scope]
+- Technology choices: [existing stack or blocking choices]
 
-## Task
+Preserve user changes, contracts, conventions, and current branch. Apply engineering principles, implement the smallest complete change, and use configured checks. Keep a short active plan and actual evidence in canonical state; stable technology/architecture knowledge belongs in the map. Link a long existing plan instead of duplicating it.
 
-- Goal and first useful workflow: [what should work]
-- Required behavior and relevant failure cases: [observable acceptance criteria]
-- Constraints and exclusions: [compatibility, data, performance, cost, out of scope]
-- Technology choices: [existing repository stack, user choices, or blocking choices still open]
+Create no extra index, instructions, diary, archive, or snapshot by default. Preserve old records, notes, and evidence until their destination is established. Git writes, destructive operations, external services, and publication require applicable authorization; CHECKPOINT is not a commit.
 
-## Expectations
-
-Inspect affected code and existing solutions before editing. Preserve user changes, public contracts, conventions, and the current branch. Apply engineering principles proportionally, implement the smallest complete change, and use configured project checks. For shared interfaces, give each planned deliverable its paths, input/output contract, dependencies, and observable check. Review required behavior separately from engineering quality before completion.
-
-Prepare the support bundle on explicit startup. For later small changes, reuse it without creating more planning files. For ongoing work, keep the canonical checkpoint current outside the skill. Never inherit source-repository task history or checks.
-
-Clarify only choices that block correct implementation. Do not choose a new stack, create branches, perform Git writes, delete data, deploy, or publish without specific applicable authorization.
-
-Report the result, checks actually performed, and limitations concisely. CHECKPOINT means recording current project facts, not creating a commit.
+Report actual results, checks, limitations, and the next action concisely.

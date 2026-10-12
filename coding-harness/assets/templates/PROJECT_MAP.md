@@ -6,13 +6,11 @@ Revision: [inspected revision or unavailable]
 Working tree / access: [relevant local changes or access limitations]
 Validation: [source inspection performed; runtime checks performed or NOT RUN]
 
-## Purpose and Current Work
+## Purpose and Stable Context
 
-[Explain what the project does and define necessary domain terms.]
+[Explain what the project does and define necessary domain terms. Keep active tasks, plans, and test status in canonical state.]
 
-- Current request: [task from the current request, or unavailable]
-- Recorded work: [relevant project checkpoint and whether it is current, or unavailable]
-- Implemented changes: [observed source/diff facts; keep plans separate]
+Project documents: [actual relative canonical state path and useful existing documentation links]
 
 ## Technologies
 
