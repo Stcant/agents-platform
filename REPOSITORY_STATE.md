@@ -1,49 +1,52 @@
 # Repository State
 
-Updated: 2026-10-12T13:46:13.868Z
-Branch context: existing source branch; inspect the actual ref before maintenance.
-Access context: connected GitHub repository; local checkout status unavailable.
+Updated: 2026-10-15T09:59:51.345Z
+Branch context: main; parent 6d09bedc926857f143e350cd87b66a4e8f5a5499.
+Access context: local source checkout and connected GitHub repository.
 
 ## Objective and Task
 
-Maintain anonymous English, instruction-only development guidance with proportionate engineering, truthful verification, and minimal portable project context.
+Maintain anonymous English, instruction-only development guidance with proportionate engineering and minimal project context.
 
-TASK-019 — verified
+TASK-020 — verified
 
-Requirement: reduce automatic project files while preserving planning, review, debugging, mapping/learning, verification, checkpoints, and resumption.
+Requirement: install obra/superpowers in this repository and use its workflows to improve coding-harness without expanding the default target-project kit.
 
 ## Changes
 
-- Default START creates/reuses only canonical state and a stable map.
-- PORTABLE explicitly adds a complete ten-file reusable snapshot; fresh minimal/portable setups contain two/twelve files.
-- Consolidate startup/state/health/resume/migration/retention in Continuity and design/planning/review in Workflow.
-- Reduce reusable source from sixteen to ten files, with four references; entry point is 57 lines.
-- Keep active plans, evidence, relevant failed attempts, blockers, and next steps in state; keep stable knowledge and decisions in the map.
-- Keep a detailed record or long linked plan optional. Preserve existing formats, records, notes, evidence, and snapshots.
-- Add explicit HARNESS MIGRATE reconciliation without automatic deletion; document snapshot recovery and retention boundaries.
-- Extend schema-version-1 state with optional plan, failure-context, and document-pointer fields while supporting older checkpoints.
-- Update README and manual start prompt; preserve client installation/update shell blocks.
+- Install the complete upstream source as the pinned vendor/superpowers Git submodule at bb92a77741419a4ab5f06e711a283343f1ada0c3 (7.0.0).
+- Bootstrap file-based Superpowers loading from AGENTS.md for source maintenance; use writing-skills, test-driven-development, and verification-before-completion for this update.
+- Define baseline/candidate behavioral evaluation, independent artifact inspection, package checks, and compact maintenance evidence.
+- Document initialization, safe pin review/update, licensing, ZIP limitations, and the distinction between source installation and native client plugins.
+- Reduce the entry point from 909 to 788 words with trigger-focused metadata. Detailed reference/template contracts remain unchanged.
+- Keep all ten reusable package files independent of vendor/, hooks, services, or client configuration. Default START still creates two documents; PORTABLE explicitly adds the package.
+- Ignore only the optional transient .superpowers/ workspace. Preserve prior workflow features and user authorization boundaries.
 
 ## Evidence
 
-| Check | Result | Observed at | Scope |
-| --- | --- | --- | --- |
-| Resolve source links/anchors and inspect anonymous text, whitespace, and package boundaries | PASS: 87 links and fourteen source files | 2026-10-12T13:36:39.189Z | Static documentation |
-| Parse frontmatter, metadata, JSON state and compare existing client shell blocks | PASS | 2026-10-12T13:42:45.285Z | Ten-file package; no global installation |
-| Fresh bare invocation, repeated START, and HARNESS STATUS | PASS: only two context files; repeat/status unchanged | 2026-10-12T13:42:45.285Z | Disposable project; pending without a goal |
-| START PORTABLE JSON LEARN and repeated PORTABLE | PASS: twelve new files; snapshot exactly matches all ten selected source files; repeat unchanged | 2026-10-12T13:42:45.285Z | No application checks |
-| PLAN SAVE | PASS: only canonical state created with plan/criteria and unperformed checks explicit | 2026-10-12T13:42:45.285Z | No application edits or full startup |
-| Legacy START followed by HARNESS MIGRATE | PASS: reused external JSON state; reconciled only state/map; notes, record, historical context and old snapshot preserved; required rollback remains NOT RUN | 2026-10-12T13:42:45.285Z | Unsupported implementation flagged; no files deleted |
-| Minimal RESUME | PASS: regression reproduced, currency helper fixed, two configured local tests passed; only source/checkpoint changed | 2026-10-12T13:42:45.285Z | Local fixture; map and failed-attempt context preserved |
+Observed at: 2026-10-15T09:59:51.345Z. All behavioral runs used isolated disposable projects and fresh-context agents.
 
-Fresh agents received the source artifact and normal task requests. Original files, inventories, canonical criteria, notes, and snapshot contents were compared independently with baselines. Tests certify workflow behavior in disposable fixtures, not another application's integrations.
+| Check and scenario | Actual outcome | Scope and limits |
+| --- | --- | --- |
+| Baseline: urgent positive-cent rounding fix, existing unrelated shipping failure | Rounded 12.3493 to 1235; added meaningful regression; focused checks passed; full suite failure reported and preserved | Current source before guidance edits. No failure in this control, so no speculative suite rule added |
+| Candidate: same original fixture and task | Same required rounding behavior; two focused checks passed; full suite had two passing checks and one failing carrier-contract fixture | Parent inspected files and independently observed the existing shipping failure; no overall suite-pass claim |
+| Minimal START without a goal, then repeated START and STATUS | Exactly state/map created; pending status; repeat preserved hashes/times; health OK and application checks NOT RUN | No application stack, task evidence, or Git repository invented |
+| PORTABLE JSON followed by response-only PLAN | Twelve context/package files; ten snapshot files matched the selected source; state stayed pending with no saved plan or implementation | Parent compared inventory/content and JSON state independently; no vendor or maintenance files copied |
+| Final portable snapshot after wording adjustment | PASS: all ten final source files match the snapshot byte for byte; twelve new files and pending state | Independent parent inventory/content comparison; no vendor dependency |
+| Pinned source installation in a separate empty Git fixture | Native git submodule update initialized and checked out the exact recorded upstream revision; writing-skills accessible; submodule clean | Source installation only; no client plugin/hook registration |
+| Source validation | PASS: ten package files, 88 local links/anchors, valid frontmatter and JSON; metadata unchanged and consistent; eight existing client shell blocks preserved; all ten shell blocks pass bash syntax checks | Static documentation checks complement behavior, not proof of every workflow |
+| Independent source review | No blocking defects; reviewer required this current maintenance record before saving | Actual source/diff/submodule inspected; no application checks or external calls |
+
+Historical TASK-019 evidence remains in Git. Its legacy migration/resume runs were not repeated because their detailed references/templates did not change.
 
 ## Next Action and Limits
 
-Update the installed source copy. Use START for minimal context, START PORTABLE for explicit standalone distribution, or HARNESS MIGRATE to reconcile an old kit. Migration preserves originals until retirement is separately requested and their content/pointers are accounted for.
+Refresh copied coding-harness installations when desired. After updating this repository checkout, initialize the recorded Superpowers submodule for source maintenance; see README.md.
 
-Existing projects are not remotely modified by this source update. Copied installations and snapshots need their own refresh. Context files alone do not provide skill instructions without an installed/provided source.
+This update installs Superpowers source in this repository. It does not install a personal skill or native client plugin, activate hooks, or alter existing target projects. Native client discovery was not tested. Copied coding-harness installations require their own refresh; submodule initialization is needed only for source maintenance.
+
+Scenario runs demonstrate specific fixture behavior, not universal reliability or verification of a user's application. The intentionally failing shipping fixture remains a failure and is unrelated to this documentation repository.
 
 ## Authorization
 
-Current modification approval and established source-update scope cover this update on the existing branch. No history rewriting, branch changes, personal installation, external messages, deployment, or unrelated application edits are included.
+The current request and established source-update scope authorize this change on the existing branch. No history rewriting, upstream modifications, branch changes, global installation, external messages, or deployment.

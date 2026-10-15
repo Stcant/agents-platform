@@ -348,11 +348,55 @@ A checkpoint update does not authorize a commit. Preserve uncommitted evidence u
 
 Maintenance of this source resumes from [REPOSITORY_STATE.md](REPOSITORY_STATE.md); never copy its tasks or evidence into a target project. Without a skill loader, use [PROJECT_START_PROMPT.md](PROJECT_START_PROMPT.md).
 
+## Superpowers for Repository Maintenance
+
+[Superpowers](https://github.com/obra/superpowers) is installed in this source repository as a Git submodule at `vendor/superpowers`, pinned to revision `bb92a77741419a4ab5f06e711a283343f1ada0c3` (7.0.0). It supports maintaining and evaluating this skill. It is outside the ten-file `coding-harness/` package and is never copied by START, PORTABLE, or client installation commands.
+
+Initialize it after cloning or updating this source checkout:
+
+```bash
+git submodule update --init -- vendor/superpowers
+git submodule status -- vendor/superpowers
+```
+
+The first command checks out the revision recorded by the parent repository, not the latest upstream release. A leading space in the status output indicates the recorded revision is checked out; `-` means uninitialized and `+` means a different revision. A ZIP download of the parent repository does not include submodule contents. Use a Git checkout for Superpowers maintenance; ordinary skill installation needs only coding-harness/.
+
+[AGENTS.md](AGENTS.md) bootstraps Superpowers by directing repository agents to its using-superpowers skill and relevant writing-skills, debugging, test, and verification guidance. For an agent that does not read AGENTS.md, provide that file explicitly. Example maintenance request:
+
+```text
+Read AGENTS.md and use the pinned Superpowers writing-skills workflow to improve coding-harness. Test the current behavior before editing, then verify the candidate in fresh disposable projects. Preserve the two-document default and the standalone package.
+```
+
+This is a repository-scoped source installation with file-based loading. It does not register a native plugin, install account-wide skills, enable client hooks, or change other projects. For native client integration, follow the [upstream installation instructions](https://github.com/obra/superpowers#installation); do not combine installations blindly or claim native discovery from files being present.
+
+### Update the Pinned Superpowers Version
+
+Normal source updates followed by submodule initialization use the reviewed pin. To evaluate a different upstream revision, first ensure the submodule has no local changes, then fetch and select a reviewed commit:
+
+```bash
+(
+  set -eu
+  git submodule update --init -- vendor/superpowers
+  test -z "$(git -C vendor/superpowers status --porcelain)"
+  git -C vendor/superpowers fetch origin
+  git -C vendor/superpowers checkout --detach "<reviewed-commit>"
+  git diff --submodule=log -- vendor/superpowers
+)
+```
+
+Replace `<reviewed-commit>` before running. Review changed upstream instructions and licenses, rerun the maintenance scenarios, and update the revision above. Saving the new gitlink in the parent repository requires the applicable Git authorization. Never overwrite a modified submodule or advance it automatically during target-project work. Upstream retains its own MIT license and attribution; do not edit its files to customize this skill.
+
+### Evaluate Changes to This Skill
+
+Keep maintenance evidence in [REPOSITORY_STATE.md](REPOSITORY_STATE.md), separate from target-project checkpoints. Use the baseline/candidate method in AGENTS.md and inspect emitted files and actual check results independently. Static link/frontmatter checks complement behavioral runs; they do not prove that an agent follows the instructions.
+
+Select scenarios for the changed boundary. The core regression set is: minimal START then repeated START/STATUS; PORTABLE with an exact package comparison; read-only PLAN or mapping; and a code fix with an existing failing suite check. Preserve user notes and legacy canonical state when continuity changes. Exercise only disposable fixtures, without live services or personal data. If independent agents or native client discovery cannot be exercised, state that limit explicitly.
+
 ## Inspiration and Documentation
 
 Workflow improvements draw on [ECC](https://github.com/affaan-m/ECC), revision `ef648e01899ba3e8dc6371642deaaf64b4477775`: progressive context retrieval, meaningful tests, explicit verification, and checkpoints before phase transitions. The instructions are written for this skill; they include no executable code or substantial text copied from ECC.
 
-Further workflow ideas draw on [superpowers](https://github.com/obra/superpowers), revision `8ca22dba9a94f28898bbce59f2537ff4d87c747d`: concrete task contracts, design tradeoffs, review reception, root-cause tracing, and regression-test integrity. These additions were written independently for this skill; no upstream scripts, hooks, runtime, approval chain, or automatic agent/worktree lifecycle is required.
+Earlier workflow ideas draw on [Superpowers](https://github.com/obra/superpowers), revision `8ca22dba9a94f28898bbce59f2537ff4d87c747d`: concrete task contracts, design tradeoffs, review reception, root-cause tracing, and regression-test integrity. The repository now also pins upstream source for maintenance, as described above. Coding-harness guidance remains independently written and requires no upstream scripts, hooks, runtime, approval chain, or automatic agent/worktree lifecycle when installed in a target project.
 
 Client procedures were checked on October 7, 2026 against official documentation:
 
