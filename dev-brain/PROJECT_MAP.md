@@ -7,10 +7,10 @@ Source of a standalone dev-brain folder copied into independent repositories. Op
 ## Stack and structure
 
 - Markdown documentation; no application framework, package manager or executable test suite configured in this source kit.
-- Root AGENTS.md directs the agent to the kit. README.md explains adoption and daily use.
+- AGENTS.md contains project instructions to merge into a destination repository's root instructions. README.md explains adoption and daily use.
 - RULES.md defines proportional engineering, stack adaptation, existing-project assessment and evidence requirements.
 - NOW.md summarizes current work; PROJECT_STATE.md holds details; this map holds stable knowledge; me.md holds personal preferences.
-- `src/.gitkeep` is a pre-existing placeholder, not an imposed layout for destination projects.
+- All source-kit files are contained in this `dev-brain/` folder; no `src/` layout is used.
 
 ## Working flow
 

@@ -6,11 +6,12 @@ Maintain an English, standalone, OpenCode-only engineering kit copied into each 
 
 ## Current change
 
-Expanded RULES.md with decision priorities, engineering principles, paradigms, language/framework adaptation, existing-project assessment, correctness, security, tests and continuity. Updated root instructions, adoption guide, map and preferences without adding files or changing application code.
+Expanded RULES.md with decision priorities, engineering principles, paradigms, language/framework adaptation, existing-project assessment, correctness, security, tests and continuity. Consolidated the kit files into `dev-brain/`, including instructions and adoption guide; removed the unsuitable `src/` placeholder. No application code changed.
 
 ## Acceptance criteria
 
 - Rules cover the agreed engineering topics without imposing classes, frameworks or speculative architecture.
+- The entire kit is contained in one `dev-brain/` folder and has no `src/` directory.
 - Adoption rebuilds foreign context from actual source, preserves notes and does not authorize automatic code optimization.
 - NOW is the short entry point; state is working detail; map contains stable project facts; preferences are not project configuration.
 - Documentation remains English and local references resolve.

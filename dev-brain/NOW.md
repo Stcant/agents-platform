@@ -3,10 +3,11 @@
 ## Done
 
 - Expanded the English engineering rules: proportional design, language/framework adaptation, existing-code assessment, testing and verification. Aligned adoption instructions, map and preferences.
+- Consolidated the complete kit into `dev-brain/`; removed the unsuitable `src/` placeholder.
 
 ## Current focus
 
-Validate the revised documentation and keep this source kit separate from destination-project facts. Detailed evidence and limitations: [project state](PROJECT_STATE.md).
+Validate the consolidated documentation and keep this source kit separate from destination-project facts. Detailed evidence and limitations: [project state](PROJECT_STATE.md).
 
 ## Next
 
