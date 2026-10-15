@@ -316,6 +316,8 @@ $coding-harness PROJECT MAP LEARN I am new to Java and Spring Boot; explain one 
 $coding-harness CHANGE IMPACT LEARN Add cancellation to the order workflow
 ```
 
+To learn while implementing, say which stack is new to you in the same request. The skill will continue the requested code work and finish with the inspected request flow, actual check results, and one useful file to read next. For example: `$coding-harness I am new to this Spring Boot project. Add order validation.` This keeps a coding request actionable; `PROJECT MAP LEARN` on its own remains a read-only map.
+
 These phrases are prompt instructions, not client commands. Mapping runs no tests, applications, databases, or services. Claims distinguish observations, inferences, and unknowns. A saved map contains stable knowledge and links state for current work; it is not a second checkpoint. See [Project Mapping](coding-harness/references/PROJECT_MAP.md).
 
 ## File Ownership and History

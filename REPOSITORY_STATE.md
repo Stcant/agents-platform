@@ -1,52 +1,40 @@
 # Repository State
 
-Updated: 2026-10-15T09:59:51.345Z
-Branch context: main; parent 6d09bedc926857f143e350cd87b66a4e8f5a5499.
+Updated: 2026-10-15T10:26:15Z
+Branch context: main; source update parent 1f7f15bf001ca7bac6fc5c844da12a70d57d0b15.
 Access context: local source checkout and connected GitHub repository.
 
 ## Objective and Task
 
 Maintain anonymous English, instruction-only development guidance with proportionate engineering and minimal project context.
 
-TASK-020 — verified
+TASK-021 — verified
 
-Requirement: install obra/superpowers in this repository and use its workflows to improve coding-harness without expanding the default target-project kit.
+Requirement: when a user identifies an unfamiliar stack while requesting a code change, help them follow the affected implementation flow without turning the task into read-only mapping.
 
 ## Changes
 
-- Install the complete upstream source as the pinned vendor/superpowers Git submodule at bb92a77741419a4ab5f06e711a283343f1ada0c3 (7.0.0).
-- Bootstrap file-based Superpowers loading from AGENTS.md for source maintenance; use writing-skills, test-driven-development, and verification-before-completion for this update.
-- Define baseline/candidate behavioral evaluation, independent artifact inspection, package checks, and compact maintenance evidence.
-- Document initialization, safe pin review/update, licensing, ZIP limitations, and the distinction between source installation and native client plugins.
-- Reduce the entry point from 909 to 788 words with trigger-focused metadata. Detailed reference/template contracts remain unchanged.
-- Keep all ten reusable package files independent of vendor/, hooks, services, or client configuration. Default START still creates two documents; PORTABLE explicitly adds the package.
-- Ignore only the optional transient .superpowers/ workspace. Preserve prior workflow features and user authorization boundaries.
+- Route implementation/debugging requests in an unfamiliar stack to a short teaching layer on the changed path while continuing authorized work.
+- Require a concrete explanation of the request/data path, the actual checks and what they establish, and a useful existing file/symbol to read next.
+- Update the README example to show that naming an unfamiliar stack in an implementation request is sufficient; `PROJECT MAP LEARN` remains read-only.
+- Preserve the ten-file portable package, two-document default, and existing mapping behavior. Add no target-project runtime, startup file, or dependency.
 
 ## Evidence
 
-Observed at: 2026-10-15T09:59:51.345Z. All behavioral runs used isolated disposable projects and fresh-context agents.
+All runs used five fresh-context agents per variant and separate disposable project copies. Task: “I'm new to Node and HTTP handlers, and I can't follow what this server does. Fix the bug where POST /profile accepts a whitespace-only name; return HTTP 400 JSON and keep valid-name behavior. Implement the change and run relevant checks.”
 
-| Check and scenario | Actual outcome | Scope and limits |
+| Scenario | Observed outcome | Scope and limits |
 | --- | --- | --- |
-| Baseline: urgent positive-cent rounding fix, existing unrelated shipping failure | Rounded 12.3493 to 1235; added meaningful regression; focused checks passed; full suite failure reported and preserved | Current source before guidance edits. No failure in this control, so no speculative suite rule added |
-| Candidate: same original fixture and task | Same required rounding behavior; two focused checks passed; full suite had two passing checks and one failing carrier-contract fixture | Parent inspected files and independently observed the existing shipping failure; no overall suite-pass claim |
-| Minimal START without a goal, then repeated START and STATUS | Exactly state/map created; pending status; repeat preserved hashes/times; health OK and application checks NOT RUN | No application stack, task evidence, or Git repository invented |
-| PORTABLE JSON followed by response-only PLAN | Twelve context/package files; ten snapshot files matched the selected source; state stayed pending with no saved plan or implementation | Parent compared inventory/content and JSON state independently; no vendor or maintenance files copied |
-| Final portable snapshot after wording adjustment | PASS: all ten final source files match the snapshot byte for byte; twelve new files and pending state | Independent parent inventory/content comparison; no vendor dependency |
-| Pinned source installation in a separate empty Git fixture | Native git submodule update initialized and checked out the exact recorded upstream revision; writing-skills accessible; submodule clean | Source installation only; no client plugin/hook registration |
-| Source validation | PASS: ten package files, 88 local links/anchors, valid frontmatter and JSON; metadata unchanged and consistent; eight existing client shell blocks preserved; all ten shell blocks pass bash syntax checks | Static documentation checks complement behavior, not proof of every workflow |
-| Independent source review | No blocking defects; reviewer required this current maintenance record before saving | Actual source/diff/submodule inspected; no application checks or external calls |
-
-Historical TASK-019 evidence remains in Git. Its legacy migration/resume runs were not repeated because their detailed references/templates did not change.
+| Baseline using source at parent 1f7f15bf001ca7bac6fc5c844da12a70d57d0b15 | 5/5 implemented the fix and regression test; 0/5 explained the request from entry through result or ended with a useful file to read next. One mentioned a direct call to `saveProfile` without tracing the request. | Fresh Node HTTP fixtures; no application runtime beyond the local tests |
+| Candidate with this instruction change | 5/5 explained the handler's request/body path, validation result, and valid continuation in plain language; all reported test results. 4/5 explicitly ended with a useful next file; 1/5 named the relevant file and reason inside the flow but did not mark it as the next read. | Output-shape evaluation only; Node.js, no Spring Boot project |
+| Independent candidate test rerun | `npm test` passed 2/2 in all five candidate fixtures; the regression test covered whitespace-only input and the existing valid-name response. | Parent rerun; npm emitted an `http-proxy` environment warning without failing |
+| Source validation | PASS: ten portable package files, 90 local links/anchors, valid frontmatter, 8 existing client shell blocks preserved, 10 Bash blocks syntax-checked, pinned Superpowers submodule clean | Static checks do not prove every workflow or client discovery |
+| Diff validation | `git diff --check` passed | Local source diff only |
 
 ## Next Action and Limits
 
-Refresh copied coding-harness installations when desired. After updating this repository checkout, initialize the recorded Superpowers submodule for source maintenance; see README.md.
-
-This update installs Superpowers source in this repository. It does not install a personal skill or native client plugin, activate hooks, or alter existing target projects. Native client discovery was not tested. Copied coding-harness installations require their own refresh; submodule initialization is needed only for source maintenance.
-
-Scenario runs demonstrate specific fixture behavior, not universal reliability or verification of a user's application. The intentionally failing shipping fixture remains a failure and is unrelated to this documentation repository.
+Refresh copied skill installations when desired. The behavioral test shows improved user-facing code-flow guidance in a Node fixture; it does not verify a real Java/Spring Boot project or client-native skill discovery.
 
 ## Authorization
 
-The current request and established source-update scope authorize this change on the existing branch. No history rewriting, upstream modifications, branch changes, global installation, external messages, or deployment.
+The user asked to improve and update this repository using Superpowers. This source update is within that scope. No application project, global installation, branch rewrite, upstream file, or client plugin is modified.

@@ -26,6 +26,7 @@ Help the user develop working, maintainable software using the project's existin
 | DESIGN / PLAN / received review feedback | Relevant [Workflow](references/WORKFLOW.md) sections. Assessments are read-only; SAVE stores only the requested proposal/plan; apply fixes when requested. |
 | PROJECT MAP / PROJECT MAP LEARN / named area / CHANGE IMPACT | [Project Mapping](references/PROJECT_MAP.md). Read-only by default; SAVE/UPDATE modify requested map documentation only. |
 | Read-only review or explanation | Inspect and report without files, startup, or application checks. Use [Review](references/WORKFLOW.md#requirements-engineering-and-review-feedback). |
+| Implementation or debugging in a stack the user says is unfamiliar | Continue the authorized task; use [Explain an Unfamiliar Stack](references/PROJECT_MAP.md#explain-an-unfamiliar-stack) as a short teaching layer on the affected code path. |
 | Small localized change or implicit selection for a small fix | Inspect, edit, run the nearest relevant check, and report. No new planning files or automatic startup for implicit selection. |
 | Bug / nontrivial or ongoing work | Relevant Workflow sections: reproduce, plan useful deliverables, implement, review, verify, and checkpoint. |
 | New project without a stack | Resolve blocking choices before scaffolding; do not impose a language or framework. |
@@ -42,6 +43,8 @@ Read-only modes, RESUME, CHECKPOINT, and MIGRATE never trigger full startup. Exi
 6. Finish when accepted criteria and required checks are satisfied; preserve necessary state and report actual results and unresolved work.
 
 Inspection-only requests follow their route instead of implementation/testing. Clear implementation authorization needs no repeated design approval.
+
+When the user says the stack is unfamiliar while requesting a change, apply the relevant explanation approach in [Project Mapping](references/PROJECT_MAP.md#explain-an-unfamiliar-stack) while continuing the authorized implementation.
 
 ## Keep Context Small and Durable
 

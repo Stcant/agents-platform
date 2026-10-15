@@ -61,6 +61,12 @@ Walk one real request or job from entry point to result. Include a short actual 
 
 Finish with concrete files or symbols to read next and an explanation of where a small change would start. Recommend only existing checks and describe what they establish; do not run them as part of mapping. Keep missing runtime behavior and uninspected areas visible. Follow the response depth requested by the user without expanding the task into implementation.
 
+When the user identifies an unfamiliar stack during implementation or debugging, use this explanation approach on the affected flow while continuing the authorized task. Briefly define relevant concepts when first used and tie them to inspected paths and symbols. After verification, write directly to the user in their language using this compact form, with every slot replaced by inspected findings:
+
+`Flow: <entry path:symbol> -> <next path:symbol>: <plain-language action and data> -> <changed path:symbol>: <new decision and observable result>. Checks: <actual command> — <actual result>; it establishes <case>, with <limit if relevant>. Read next: <existing path:symbol> — <why it helps trace or change this behavior>.`
+
+Use concrete repository paths and names in the flow; explain what the important hop does, not only the sequence of filenames. Don’t leave placeholders, give instructions about what the explanation should say, or write “I would explain” instead of explaining. If a hop was not inspected or a check was not run, say so. This is an explanation layer, not a read-only mapping request: continue the requested change and create no map file. Keep the lesson to concepts needed for the change; give a general language/framework course only when asked.
+
 ## Change Impact
 
 For `CHANGE IMPACT <proposed change>` or an equivalent question about what a change could affect, use read-only source inspection. This request authorizes neither implementation nor startup. Add LEARN when unfamiliar concepts need explanation; saving requires an explicit documentation request.
