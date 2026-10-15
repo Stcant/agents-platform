@@ -27,7 +27,7 @@ Help the user develop working, maintainable software using the project's existin
 | PROJECT MAP / PROJECT MAP LEARN / named area / CHANGE IMPACT | [Project Mapping](references/PROJECT_MAP.md). Read-only by default; SAVE/UPDATE modify requested map documentation only. |
 | Read-only review or explanation | Inspect and report without files, startup, or application checks. Use [Review](references/WORKFLOW.md#requirements-engineering-and-review-feedback). |
 | Implementation or debugging in a stack the user says is unfamiliar | Continue the authorized task; use [Explain an Unfamiliar Stack](references/PROJECT_MAP.md#explain-an-unfamiliar-stack) as a short teaching layer on the affected code path. |
-| Small localized change or implicit selection for a small fix | Inspect, edit, run the nearest relevant check, and report. No new planning files or automatic startup for implicit selection. |
+| Small localized change or implicit selection for a small fix | Inspect, edit, run relevant checks, and report. For a bug, apply [Behavior-First Debugging](references/WORKFLOW.md#behavior-first-debugging), including regression evidence. No new planning files or automatic startup for implicit selection. |
 | Bug / nontrivial or ongoing work | Relevant Workflow sections: reproduce, plan useful deliverables, implement, review, verify, and checkpoint. |
 | New project without a stack | Resolve blocking choices before scaffolding; do not impose a language or framework. |
 
@@ -37,7 +37,7 @@ Read-only modes, RESUME, CHECKPOINT, and MIGRATE never trigger full startup. Exi
 
 1. Inspect instructions and current scope. In a checkout use `git status --short --branch`; preserve edits and branch. With remote-only access inspect the actual ref/commit and disclose unavailable local checks.
 2. Trace affected behavior, callers, contracts, tests, and existing solutions.
-3. Define observable success and failure cases. Reproduce bugs before editing when practical; prefer meaningful failing tests for testable new behavior. Setup failures do not demonstrate a regression.
+3. Define observable success and failure cases. With a suitable existing test harness, observe an acceptance/regression test fail for the missing or incorrect behavior before implementing it; use [Behavior-First Debugging](references/WORKFLOW.md#behavior-first-debugging). Setup failures do not demonstrate a regression.
 4. Implement the smallest complete change using [Engineering](references/ENGINEERING.md). For shared interfaces, use [Design and Plans](references/WORKFLOW.md#design-and-executable-plans).
 5. Run relevant configured checks; review the full change, new files, and direct consumers. For nontrivial work check requirements separately from engineering. Record actual evidence, scope, time, and limitations using the [Completion Gate](references/WORKFLOW.md#completion-gate).
 6. Finish when accepted criteria and required checks are satisfied; preserve necessary state and report actual results and unresolved work.

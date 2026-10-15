@@ -296,6 +296,8 @@ Plans contain at most five active working deliverables with paths, shared input/
 
 Review checks required behavior and exact constraints before engineering quality. Received suggestions are evaluated against actual contracts; independent supported fixes can proceed when application edits are authorized. Debugging traces the bad value/failure to its responsible boundary, and regressions must demonstrate the intended defect instead of a setup error or mocked result.
 
+When an existing test harness can express changed behavior, implementation starts with a focused acceptance/regression test that fails for the intended reason. The agent then makes the smallest passing change and runs relevant project checks. Tiny fixes follow the same rule. A green suite that never exercises the defect is insufficient; each changed decision or side effect needs a check that would catch a wrong outcome. Without a suitable harness, use a safe reproduction and disclose its limits rather than introducing a test framework automatically.
+
 Software engineering requirements, evidence gates, privacy, authorization, and stack independence remain in [Workflow](coding-harness/references/WORKFLOW.md) and [Engineering](coding-harness/references/ENGINEERING.md).
 
 ## Project Orientation and Change Impact
