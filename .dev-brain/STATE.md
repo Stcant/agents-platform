@@ -2,22 +2,21 @@
 Updated: 2026-10-25 · Branch: improve/token-budget-and-review
 
 ## Goal
-Personal OpenCode harness for readable, maintainable code at the lowest context cost — acceptance: always-on design rules installed, review covers real defects and maintenance costs, every claim backed by `evals/` evidence.
+Claude Code plugin for readable, maintainable code at the lowest context cost — acceptance: installs from GitHub with two commands, every claim backed by `evals/` evidence, measured benefit on real tasks.
 
 ## Done (latest first, max 5)
-- `/review` delegates the diff to the reviewer (read-only git allowlist); covers staged, unstaged and untracked; plugin skips subagents and enforces a 3000-char state budget; `/resume` stack-agnostic; `/start` migrates `harness/` — evidence: `python3 evals/offline/check.py` PASS (mock model, OpenCode 2.1.4); `evals/results.md` 2026-10-25
-- hph adopted by following `/start` (patch, not pushed) — evidence: plugin injected the 1.3 KB state; `git apply --check` PASS on hph `d6ee299`
-- Maintainability scenario: review policy reports duplicated business rules — evidence: `evals/results.md` 2026-10-22 (Python only)
+- Plugin-only layout: rules + state via `SessionStart` hook, workflows as zero-cost skills, `plan` and other adapters removed, docs compacted — evidence: `python3 evals/offline/check.py` ALL PASS twice (Claude Code 2.1.310, mock model)
+- hph adopted: `AGENTS.md` + 1.3 KB state, `harness/` retired — evidence: hph PR #10 open
+- Review no longer pays the diff three times (7005 → 1101 chars on hph) — evidence: `evals/results.md` 2026-10-25
 
 ## In progress / blockers
-- Real-model behavior of the new `/review`, `/resume` and plugin — status: NOT RUN; providers unreachable from the test environment
-- Cross-language generation scenario — status: NOT RUN
-- hph `harness/` deletion and patch commit — status: waiting for the owner
+- Benefit of the rules on real code — status: NOT RUN; user postponed the benchmark
+- Real-model and interactive behavior of the plugin — status: NOT RUN
 
 ## Known pre-existing failures
-- `opencode run "/command"` does not expand slash commands (CLI limitation)
+- none
 
 ## Next (max 3)
-1. Run `python3 evals/offline/check.py` locally, then `/review` on a real diff with a real model in the TUI.
-2. Apply the hph patch, review it, delete `harness/` and fix the README link to it.
-3. Add a non-Python maintainability scenario before changing design rules again.
+1. Merge PR #2, install from GitHub (`claude plugin marketplace add Stcant/agents-platform`), try `/dev-brain:start` and `/dev-brain:review` in a real session.
+2. Review and merge hph PR #10.
+3. Benchmark: same real hph tasks with and without the plugin; keep only rules that move the numbers.

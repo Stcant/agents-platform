@@ -1,8 +1,10 @@
 ---
-description: Read-only impact analysis for a proposed change
+name: impact
+description: Read-only impact analysis of a proposed change - consumers, contracts, tests and unknowns. Run only when the user asks for it.
+disable-model-invocation: true
 ---
 
-Analyze the impact of this change: $ARGUMENTS
+Analyze the impact of the change the user described with this request.
 
 Read-only: do not modify files, generate patches or run checks.
 

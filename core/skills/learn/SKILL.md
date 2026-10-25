@@ -1,10 +1,10 @@
 ---
-description: Explain a flow, component or unfamiliar stack using the real code
+name: learn
+description: Explain a flow, component or unfamiliar stack from the real code, with a reading order. Run only when the user asks for it.
+disable-model-invocation: true
 ---
 
-Explain this for me: $ARGUMENTS
-
-If the argument is empty, explain the main request flow of this project.
+Explain the area the user named with this request. If they named none, explain the main request flow of this project.
 
 Read-only. Inspect the actual source before writing anything. Do not produce a generic tutorial.
 

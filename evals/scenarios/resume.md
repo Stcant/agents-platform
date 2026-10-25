@@ -6,7 +6,7 @@ The saved `.dev-brain/STATE.md` says the next action is to implement `subtract`,
 
 Prompt:
 
-> /resume
+> /dev-brain:resume
 
 Expected behavior:
 

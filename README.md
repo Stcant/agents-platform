@@ -1,134 +1,74 @@
 # dev-brain
 
-Personal engineering harness for OpenCode V2. One install, used across every repository.
-
-Its primary goal is to guide normal coding requests toward readable, maintainable code, adapted to each project's language and conventions. Commands and saved state are supporting tools, not the purpose of the kit.
+A Claude Code plugin that steers ordinary coding requests toward readable, maintainable code, keeps each project's state across sessions, and spends as little context as possible. Works with any model Claude Code can use.
 
 It provides:
-- rules that are always loaded, kept short and limited to behavior the model would not follow by default;
-- commands for the recurring workflow: start, resume, handoff, plan, impact, learn, review;
-- an independent read-only reviewer;
-- three on-demand skills: debugging, review feedback, engineering risk;
-- a small plugin that injects each project's saved state into the main session's model calls, within a size budget.
-
-Project facts stay in each repository. Nothing from one project is reused in another.
+- global engineering rules, injected into every session;
+- the project's saved state, injected within a 3000-character budget;
+- user-invoked workflows: `start`, `resume`, `handoff`, `impact`, `learn`, `review` (no context cost until invoked);
+- three skills the model loads when relevant: `debugging`, `engineering-risk`, `review-feedback`;
+- a read-only reviewer subagent.
 
 > Manuale utente in italiano: [MANUALE.md](MANUALE.md).
-
-## Code quality by default
-
-The global rules apply to ordinary coding requests; no special command is required. They favor complete but simple solutions, cohesive responsibilities, explicit effects, intention-revealing names and a single source for shared business rules. They reject speculative abstractions, forced layering and silent error handling. Before delivery the agent checks its changed code for these problems without adding an unsolicited explanation.
-
-These are language-independent criteria, not a Python style guide. The agent discovers the stack and follows its idioms. `/review` adds an independent check for defects and concrete maintenance costs, not cosmetic preferences.
-
-Describe the feature or bug, its constraints and the expected behavior. You do not need to repeat "write maintainable code", invoke a skill, or create a state file before these rules apply.
-
-| Always active | Used when helpful | Requires your explicit decision |
-| --- | --- | --- |
-| Code-design guidance and self-review of changed code | Planning, impact analysis, independent review and session continuity | Commits, amendments and pushes; unrelated refactors, new dependencies or architecture changes must be proposed first |
-
-Detailed change walkthroughs are on request only. A normal answer stays concise: what changed, checks actually run, and material limits. See [`global/AGENTS.md`](global/AGENTS.md) for the full rules.
-
-Instructions guide the model; they do not guarantee good code. Behavioral tests and maintenance scenarios are evaluated separately in `evals/`.
 
 ## Install
 
 ```bash
-./install.sh
+claude plugin marketplace add Stcant/agents-platform
+claude plugin install dev-brain@dev-brain
 ```
 
-The script symlinks the kit into `~/.config/opencode` and registers the plugin in `~/.config/opencode/opencode.json`:
+Requires `python3` and `git`. Update with `claude plugin marketplace update dev-brain`. For local development, add the cloned folder instead: `claude plugin marketplace add /path/to/agents-platform` (read in place).
 
-| Source | Destination |
-| --- | --- |
-| `global/AGENTS.md` | `~/.config/opencode/AGENTS.md` |
-| `global/commands/*.md` | `~/.config/opencode/commands/` |
-| `global/agents/*.md` | `~/.config/opencode/agents/` |
-| `global/skills/*` | `~/.config/opencode/skills/` |
-| `plugin/dev-brain` | registered in `opencode.json` |
+## First step in every repository: `/dev-brain:start`
 
-Existing files that are not managed by this kit are moved to `*.bak.<timestamp>`, never deleted. The script is idempotent.
+Run it once in each repository, from its root. Everything else builds on the two files it creates: `resume` and `handoff` read and rewrite the state, every session gets it automatically, and Claude Code reads the project facts natively.
 
-After installing, start a new session. If the background server was already running, restart it when no session is active (`opencode service restart`) so commands are reloaded.
+1. Inspects the real repository: purpose, stack and versions, exact commands, conventions, gotchas. It does not open data directories (`input/`, `output/`, `.env`).
+2. Writes or merges the root `AGENTS.md` (project facts, under 60 lines) and creates or reconciles `.dev-brain/STATE.md` (goal, done with evidence, blockers, next actions, under 3000 characters).
+3. Uses files from the previous kit (`harness/`, `NOW.md`, `RULES.md`) as input and lists them for you to delete. On hph, 21 KB of `harness/` became a 3.1 KB `AGENTS.md` and a 1.3 KB state.
+4. Reports observed facts, unknowns and problems; changes no code, installs nothing, commits nothing.
+
+Then read both files, fix anything untrue, and commit them yourself if you want them versioned. Until a repository has a state file, the session only gets a one-line hint suggesting `start`; the global rules apply either way.
 
 ## Daily use
 
-Ask OpenCode to implement or fix what you need, using the project's existing language and tools. The commands below support that work; they are not a mandatory sequence or a switch that enables code quality.
+Ask Claude Code to implement or fix what you need. The rules already apply; the workflows support the work.
 
-| Command | When |
+| Workflow | When |
 | --- | --- |
-| `/start` | First adoption of a repository: writes project facts in the root `AGENTS.md` and creates `.dev-brain/STATE.md`; migrates files from the previous kit (`harness/`) without deleting them |
-| `/resume` | Start of a session: reconciles the saved state with the real repository |
-| `/handoff` | End of meaningful work: rewrites the state with verified results and next actions |
-| `/plan <goal>` | Non-trivial change: plan-contract with at most five steps |
-| `/impact <change>` | Before editing: callers, contracts, tests and unknowns |
-| `/learn <area>` | Explain a real flow or an unfamiliar stack |
-| `/review [scope]` | Review all uncommitted changes (staged, unstaged, untracked) through the read-only reviewer, which reads the diff itself with git |
+| `/dev-brain:start` | First adoption of a repository (see above) |
+| `/dev-brain:resume` | Start of a session: reconciles the saved state with git and the code |
+| `/dev-brain:handoff` | End of meaningful work: rewrites the state with verified results and next actions |
+| `/dev-brain:impact <change>` | Before editing shared code: callers, contracts, tests, unknowns |
+| `/dev-brain:learn <area>` | Explain a real flow or an unfamiliar stack |
+| `/dev-brain:review [scope]` | Review all uncommitted changes through the read-only reviewer, which reads the diff itself with git |
 
-When present, the plugin injects `.dev-brain/STATE.md` automatically, making the saved goal available at session start. Saved notes may be stale: `/resume` reconciles them with `git status` and recent commits. Neither `/start` nor a state file is required for the global design rules to apply.
+For planning use Claude Code's native plan mode (Shift+Tab): it is read-only by enforcement, which a prompt cannot match.
 
-## What lives in a project
+| Always active | Used when helpful | Requires your explicit decision |
+| --- | --- | --- |
+| Code-design guidance and self-review of changed code | Impact analysis, independent review, session continuity | Commits, amendments and pushes; unrelated refactors, new dependencies or architecture changes must be proposed first |
 
-```
-<repo>/
-├── AGENTS.md            project facts: stack, commands, conventions, gotchas (under 60 lines)
-└── .dev-brain/
-    └── STATE.md         goal, done with evidence, blockers, max 3 next actions (under 3000 characters)
-```
+## What is enforced, what is instructed
 
-Create them with `/start` when adopting the project. Both files are intended for version control, but committing them always requires your explicit decision. The state is a working document, not a diary: replace stale content at every handoff.
-
-## Plugin
-
-`plugin/dev-brain/index.ts` uses only `@opencode/plugin` and Node built-ins:
-
-- `session.hook("context")` appends `.dev-brain/STATE.md` to the system context of every model call in the main session. Subagent sessions (reviewer, explore, general) do not get it: they work from the prompt their caller writes. The injection is transient, so it survives compaction.
-- Budget: a state over 3000 characters is not injected; a one-line notice tells the model to read it when needed and to suggest `/handoff` to compact it. It is not truncated, because truncation would drop the `Next` section at the end.
-- If the repository has no state file, it adds one line suggesting `/start`; it never creates the file by itself.
-- `session.hook("compaction")` asks the summary to preserve goal, evidence, blockers and next action.
+- **Reviewer read-only: enforced.** Its tool list allows Read, Grep, Glob and `git diff/log/show/status`; any command that creates, changes or removes files needs your approval.
+- **State budget: enforced.** Over 3000 characters only a notice is injected, telling the model to read the file and suggest `handoff`.
+- **Everything else is instructed:** rules guide the model; they do not guarantee good code.
 
 ## Evaluation
 
-`evals/offline/check.py` installs the kit into a temporary configuration, replaces the model with a local mock that records every request, and checks in about five seconds, at zero token cost, what the kit controls: state injection scope and budget, and the reviewer's read-only git permissions. Run it after changing the plugin, agents or installer:
-
 ```bash
-python3 evals/offline/check.py          # set OPENCODE=<binary> if opencode is not on PATH
+python3 evals/offline/check.py        # CLAUDE=<binary> if claude is not on PATH
 ```
 
-`evals/scenarios/` describes realistic tasks and the expected behavior. `evals/results.md` records the measured results and limitations. Every change to rules, commands or skills should be justified by a scenario; instructions that do not change behavior are removed.
-
-The maintainability scenario found an improvement in **review policy**: it now reports duplicated business knowledge as a maintenance problem without merging unrelated policies. Generated code was already readable in the baseline and remained so afterward; that run does not demonstrate a generation-quality gain. The new fixture is Python-only: language-independent rules do not mean cross-language results have been verified. The `/review` delegation path is verified through the server API with a mock model, not through the TUI or a real model.
-
-Run a scenario manually in a fixture:
-
-```bash
-# Only after explicitly authorizing local fixture commits:
-./evals/setup.sh          # copies fixtures to /tmp/opencode/dev-brain-evals and recreates git history
-cd /tmp/opencode/dev-brain-evals/bugfix
-opencode run --standalone -m <provider/model> "The discount test fails. Fix the code."
-```
-
-For commands, use the TUI or the server command API; `opencode run` sends slash commands as literal text. In scripts, close stdin (`< /dev/null`): `opencode run` reads non-terminal stdin and waits for EOF.
-
-`evals/setup.sh` replaces its disposable output directory and creates commits in the history-based fixtures. The maintainability scenario can instead run on fresh copies without git history or commits; see [`evals/scenarios/maintainability.md`](evals/scenarios/maintainability.md).
-
-## Migration from the previous kit
-
-The previous visible `dev-brain/` folder has been removed. Its content remains in git history at commit `08baebc`; inspect it with `git show 08baebc:dev-brain/RULES.md` or extract it with `git archive 08baebc dev-brain | tar -x -C /tmp`.
-
-For each repository that received a copy:
-
-1. Diff its `RULES.md` against `global/AGENTS.md` and keep any project-specific or genuinely useful rule.
-2. Move stable project facts into the root `AGENTS.md`.
-3. Convert `NOW.md`, `PROJECT_STATE.md` and `PROJECT_MAP.md` into `.dev-brain/STATE.md` plus the project `AGENTS.md`.
-4. Remove the copied kit files.
+Installs the plugin into a throwaway home, replaces the model with a local mock that records every request, and checks in about 15 seconds, at zero token cost: rules and state reach the session, oversized state becomes a notice, workflows expand and stay out of the skill listing, the reviewer reads the diff but cannot write. It does not judge model behavior; `evals/scenarios/` describes the real-model scenarios and `evals/results.md` records decisions and evidence.
 
 ## Layout
 
 ```
-global/       always-loaded rules, commands, agents, skills
-plugin/       OpenCode V2 plugin
-templates/    STATE.md and project AGENTS.md templates
-evals/        scenarios, fixtures, results, offline mock check
-MANUALE.md    Italian user manual
+.claude-plugin/marketplace.json   marketplace listing the plugin
+core/                             the plugin: AGENTS.md rules, skills/, agents/, hooks/, bin/
+evals/                            scenarios, fixtures, results, offline check
+MANUALE.md                        Italian user manual
 ```

@@ -1,11 +1,11 @@
 # Personal engineering rules
 
-The goal is correct code that is readable, maintainable and easy to change. Commands and saved state support that goal; they are not the goal.
+The goal is correct code that is readable, maintainable and easy to change. Workflows and saved state support that goal; they are not the goal.
 
 Precedence: correctness > security/data integrity > project compatibility > maintainability > simplicity > measured performance. Scale effort to risk.
 
 ## Before changing
-- Saved state (.dev-brain/STATE.md) is context, not proof or permission. Check `git status` and recent `git log` before acting on it.
+- Saved state (.dev-brain/STATE.md) is context, not proof or permission. Check `git status` and recent `git log` before acting on it. If the task continues earlier work and no `<dev-brain-state>` block is in your context, read the file first.
 - Read the code you will touch and trace its real flow. Reuse existing project code, then stdlib/platform, then installed dependencies, before writing new code.
 - Use only APIs supported by the declared versions; check authoritative docs when unsure. Ask only when the answer changes scope, behavior or data safety.
 
@@ -40,7 +40,7 @@ Precedence: correctness > security/data integrity > project compatibility > main
   Read next: <path:symbol> - <why>
 
 ## Continuity
-- At the end of meaningful work update .dev-brain/STATE.md, or ask the user to run /handoff: goal, done, evidence, blockers, max 3 next actions. Replace stale content; it is not a diary.
+- At the end of meaningful work update .dev-brain/STATE.md, or suggest the `handoff` workflow: goal, done, evidence, blockers, max 3 next actions, under 3000 characters. Replace stale content; it is not a diary.
 - Update the root AGENTS.md only when stable facts change (stack, commands, architecture, gotchas).
 - Never import evidence, permissions or active work from another repository.
 
