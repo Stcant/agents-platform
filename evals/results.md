@@ -201,3 +201,35 @@ Gotchas found while testing:
 hph adoption by following `/start`: root `AGENTS.md` 3072 chars (40 lines) + `.dev-brain/STATE.md` 1329 chars replace 21.3 KB of `harness/` as working context; the plugin injected a 1504-char state block. `harness/` is left for the owner to delete. Delivered as a patch, not pushed: this session has no write access to `Stcant/hph`.
 
 NOT RUN: any real model (provider endpoints unreachable from the test environment), the TUI, the scenario set in `evals/scenarios/`, the generic `/resume` rule with a model, `cargo` checks in hph.
+
+## Agent-independent kit: OpenCode, Claude Code, Codex CLI, Cursor (2026-10-25)
+
+Goal set by the user: the kit must not depend on one agent. Tested binaries: OpenCode 2.1.4, Claude Code 2.1.310, Codex CLI 0.164.0, each against `evals/offline/mock_model.py` (OpenAI chat, Anthropic messages and OpenAI responses wire formats) with isolated homes. Cursor: no CLI reachable from the test environment; its layout comes from cursor.com docs and is checked only for generated files.
+
+What each agent actually loads (probed before designing):
+
+| | OpenCode | Claude Code | Codex | Cursor (docs) |
+| --- | --- | --- | --- | --- |
+| Project `AGENTS.md` | yes | yes (natively) | yes | yes |
+| Global rules file | `~/.config/opencode/AGENTS.md` | `~/.claude/CLAUDE.md`, `@/abs/path` import works; `~/.claude/AGENTS.md` ignored | `~/.codex/AGENTS.md` | `~/.cursor/rules/` (known loading bug) or Settings |
+| Skill dirs | `~/.claude/skills`, `~/.agents/skills` (same name: deduplicated) | `~/.claude/skills` only | `~/.codex/skills`, `~/.agents/skills` | `~/.cursor`, `~/.agents`, `~/.claude`, `~/.codex` skills |
+| `disable-model-invocation` | not tested | honored (not listed) | ignored (listed, ~1200 chars) | honored |
+| Claude-format plugin | n/a | commands, skills, agents, hooks | skills only; copies the plugin and drops symlinked dirs | n/a |
+| State hook | plugin `context` hook | `SessionStart` additionalContext, reaches the system prompt | `SessionStart`, runs only after the user trusts it | `sessionStart` additional_context dropped (open bug) |
+
+No skill directory is shared by all four, so `core/` is installed per agent; plugins are namespaced (`dev-brain:`), which also avoids Claude Code's built-in `/review` (a custom `/review` from a plugin did not override it).
+
+Reviewer enforcement, tested with write attempts (`>`, `touch`, `; rm`, `--output`):
+
+- OpenCode: rejected by permissions (unchanged).
+- Claude Code: `tools: Read, Grep, Glob, Bash(git …:*)` — git reads run; every write "needs approval" and was denied in `-p` mode; no file written.
+- Codex: the role from `~/.codex/agents/reviewer.toml` is registered, but `sandbox_mode = "read-only"` is not applied to the spawned agent: with the parent in `workspace-write` (flag or config), the reviewer created a file. Registering it under `[agents.reviewer] config_file` changed nothing. Documented as instruction-only.
+- Cursor: `readonly: true` per docs; not run.
+
+`evals/offline/check.py`, extended to all agents found: ALL PASS twice (21 checks, ~12 s). Mutation check: removing `disable-model-invocation` from one workflow makes `claude-code: user-invoked workflows stay out of the skill listing` FAIL.
+
+On hph (`/tmp` copy with the adoption patch): Claude Code `/dev-brain:resume` and Codex `$dev-brain:resume` (hook trust bypassed for the test only) both received the hph state, the resume workflow and the hph `AGENTS.md`.
+
+Removed: `agent: plan` on the plan workflow (OpenCode kept the session in plan mode, refusing implementation afterwards); `!` command expansion in workflows (not portable; the agent now runs `git status`/`git log` itself, one extra tool call).
+
+NOT RUN: any real model, any TUI, Cursor, the scenario set, Codex reviewer behavior beyond the sandbox test.

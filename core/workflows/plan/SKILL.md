@@ -1,9 +1,10 @@
 ---
-description: Produce a plan-contract for a change (read-only, max 5 steps)
-agent: plan
+name: plan
+description: Produce a read-only plan-contract of at most 5 steps for a non-trivial change. Run only when the user asks for it.
+disable-model-invocation: true
 ---
 
-Plan this work: $ARGUMENTS
+Plan the work the user described with this request.
 
 This is read-only: do not edit files, install dependencies or change git state.
 

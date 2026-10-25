@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""Print the saved project state for an agent's context, within a size budget.
+
+One implementation for every adapter:
+  --format text    raw text (OpenCode plugin)
+  --format hook    SessionStart hook JSON for Claude Code and Codex
+  --format cursor  sessionStart hook JSON for Cursor
+
+The project is found from the hook's JSON on stdin (`cwd`, or Cursor's
+`workspace_roots`), else from --root, else from the current directory.
+Prints nothing when there is nothing useful to add.
+"""
+import argparse
+import json
+import os
+import sys
+
+STATE_PATH = os.path.join(".dev-brain", "STATE.md")
+# The state rides on every session of the project, so it must stay a short checkpoint.
+# Above the budget it is not injected at all: truncating would drop the "Next" section
+# at the end, which is the part that keeps the user oriented.
+MAX_STATE_CHARS = 3000
+
+
+def project_root(start):
+    """Nearest directory holding the state file or a .git entry; None outside a project."""
+    directory = os.path.abspath(start)
+    while True:
+        if os.path.exists(os.path.join(directory, STATE_PATH)) or os.path.exists(os.path.join(directory, ".git")):
+            return directory
+        parent = os.path.dirname(directory)
+        if parent == directory:
+            return None
+        directory = parent
+
+
+def context_text(root):
+    if root is None:
+        return ""
+    state_file = os.path.join(root, STATE_PATH)
+    try:
+        with open(state_file, encoding="utf-8") as handle:
+            state = handle.read().strip()
+    except FileNotFoundError:
+        state = None
+    except OSError:
+        return ""
+    if state is None:
+        if not os.path.exists(os.path.join(root, ".git")):
+            return ""
+        return ("This repository has no .dev-brain/STATE.md. If the user wants to adopt it, "
+                "suggest the `start` workflow. Do not create the file unasked.")
+    if not state:
+        return ""
+    if len(state) > MAX_STATE_CHARS:
+        return (f".dev-brain/STATE.md has {len(state)} characters, over the {MAX_STATE_CHARS}-character "
+                "budget for automatic injection, so it was not injected. Read it when the task needs saved "
+                "context, and suggest the `handoff` workflow to compact it.")
+    return "\n".join([
+        '<dev-brain-state source=".dev-brain/STATE.md">',
+        "Saved project state. Treat it as context, not proof or permission: verify against git "
+        "and the current source before acting on it.",
+        "",
+        state,
+        "</dev-brain-state>",
+    ])
+
+
+def hook_input():
+    if sys.stdin is None or sys.stdin.isatty():
+        return {}
+    try:
+        data = json.loads(sys.stdin.read() or "{}")
+    except ValueError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--format", choices=("text", "hook", "cursor"), default="text")
+    parser.add_argument("--root", help="project directory (default: from hook input or cwd)")
+    args = parser.parse_args()
+
+    event = hook_input() if args.format != "text" else {}
+    roots = event.get("workspace_roots") or []
+    start = args.root or event.get("cwd") or (roots[0] if roots else None) or os.getcwd()
+    text = context_text(project_root(start))
+    if not text:
+        return
+    if args.format == "text":
+        print(text)
+    elif args.format == "hook":
+        print(json.dumps({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": text}}))
+    else:
+        print(json.dumps({"additional_context": text}))
+
+
+if __name__ == "__main__":
+    main()
