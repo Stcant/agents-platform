@@ -6,6 +6,15 @@ A log of decisions and the evidence behind them, newest first. Full run details 
 
 Not measured. Real-model evidence so far: one model per scenario, one run, small synthetic Python fixtures; the no-kit baseline already solved every task. The one measured gain is the review policy (below). Next: the same real tasks with and without the plugin, same model; compare tokens per task, fix iterations, review findings, time to resume after a break. Keep what moves the numbers.
 
+## 2026-10-25 — Commit rule enforced by a hook (plugin 2.1.0)
+
+The no-commit rule was instruction only; the user asked for enforcement. `core/bin/dev-brain-guard` is a `PreToolUse` hook on Bash that answers "ask" for git commands changing history, branches or the remote (commit/amend, push, merge, rebase, cherry-pick, revert, am, checkout, switch, history-moving reset, clean -f, branch -d/-m/-f, stash drop/pop/clear, tag -d/-f), parsed per chained segment and past global options (`git -C dir commit`).
+
+- Unit cases: 30 commands, read-only ones pass (`status`, `diff`, `log`, `show`, `stash`, `reset <file>`, `clean -n`, `echo git commit`).
+- `evals/offline/check.py`: with `--allowedTools "Bash(git:*)"`, `git status` ran, `git commit -am` and `git push` were stopped with the guard's reason, commit count unchanged. Removing the hook makes this check FAIL (0/2 guarded).
+- The rule in `core/AGENTS.md` now tells the model not to work around the prompt.
+- Limits: a commit made by a tool other than Bash (an MCP git server, a script the user runs) is not covered; in an interactive session "ask" shows a prompt, so the user's yes still commits — by design.
+
 ## 2026-10-25 — Claude Code only, distributed as a plugin
 
 The user works with Claude Code only. Adapters for OpenCode, Codex CLI and Cursor were removed; `core/` keeps standard formats (`AGENTS.md`, `SKILL.md`) so another agent remains an adapter away.

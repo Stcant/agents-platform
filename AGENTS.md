@@ -9,6 +9,7 @@ Its primary goal is readable, maintainable code across languages and frameworks.
 - `core/skills/` — Agent Skills. User-invoked workflows (`start`, `resume`, `handoff`, `impact`, `learn`, `review`) set `disable-model-invocation: true`, so they cost no context until invoked; `debugging`, `engineering-risk`, `review-feedback` are loaded by the model when relevant.
 - `core/agents/reviewer.md` — the read-only reviewer; its `tools` line is the enforcement.
 - `core/hooks/hooks.json` + `core/bin/dev-brain-context` — inject rules and the project state (3000-character budget).
+- `core/bin/dev-brain-guard` — `PreToolUse` hook that answers "ask" for git commands changing history, branches or the remote; keep its list in sync with the Authorization rules in `core/AGENTS.md`.
 - `core/.claude-plugin/plugin.json` — bump `version` on every change so installed copies refresh. `.claude-plugin/marketplace.json` at the root lists the plugin.
 - `evals/` — scenarios, measured results, and `offline/check.py` with `offline/mock_model.py`, a zero-token check against the real Claude Code binary.
 

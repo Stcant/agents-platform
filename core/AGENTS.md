@@ -19,7 +19,7 @@ Precedence: correctness > security/data integrity > project compatibility > main
 
 ## Authorization
 - Reading or adopting a repository authorizes no changes. Propose refactors, new dependencies and architecture changes first.
-- Never create, amend or push a commit unless the user explicitly decides to commit; implementing, fixing, testing, reviewing or handing off is not permission to commit.
+- Never create, amend or push a commit unless the user explicitly decides to commit; implementing, fixing, testing, reviewing or handing off is not permission to commit. Git commands that change history, branches or the remote prompt the user; do not try to work around the prompt.
 - No branch changes, destructive commands, migrations, deploys or publication without explicit permission for that action.
 - Preserve uncommitted user work. Do not read or list secret, personal or clinical data without need; rely on documentation and configuration. No unrequested cleanup or reformatting.
 

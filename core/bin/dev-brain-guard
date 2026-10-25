@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+"""PreToolUse hook: git commands that change history, branches or the remote need the user.
+
+The global rules say no commit, push, branch change or destructive git command
+without the user's explicit decision. This hook enforces it: for such a command it
+answers "ask", so Claude Code requests confirmation whatever the model decided or
+the permission settings allow. Everything else passes untouched (no output).
+"""
+import json
+import re
+import shlex
+import sys
+
+# git global options that take a separate value: `git -C dir commit` is still a commit.
+OPTIONS_WITH_VALUE = {"-c", "-C", "--git-dir", "--work-tree", "--namespace", "--exec-path"}
+
+
+def needs_user(subcommand, args):
+    """Why this git invocation needs the user's decision, or None."""
+    flags = set(args)
+    if subcommand in ("commit", "push", "merge", "rebase", "cherry-pick", "revert", "am"):
+        return f"git {subcommand} changes history or the remote"
+    if subcommand in ("checkout", "switch"):
+        return f"git {subcommand} changes the branch or discards work"
+    if subcommand == "reset" and (flags & {"--hard", "--soft", "--keep", "--merge"}
+                                  or any(re.fullmatch(r"(HEAD|@)[~^].*|[0-9a-f]{7,40}", a) for a in args)):
+        return "git reset moves the branch or discards work"
+    if subcommand == "clean" and (flags & {"-f", "--force"} or any(re.fullmatch(r"-[a-zA-Z]*f[a-zA-Z]*", a) for a in args)):
+        return "git clean removes files"
+    if subcommand == "branch" and flags & {"-d", "-D", "--delete", "-m", "-M", "--move", "-f", "--force"}:
+        return "git branch deletes, renames or forces a branch"
+    if subcommand == "stash" and args[:1] in (["drop"], ["clear"], ["pop"]):
+        return f"git stash {args[0]} changes or discards stashed work"
+    if subcommand == "tag" and flags & {"-d", "--delete", "-f", "--force"}:
+        return "git tag deletes or moves a tag"
+    return None
+
+
+def git_reason(segment):
+    try:
+        words = shlex.split(segment)
+    except ValueError:
+        words = segment.split()
+    while words and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", words[0]):  # leading VAR=value
+        words = words[1:]
+    if not words or words[0].rsplit("/", 1)[-1] != "git":
+        return None
+    index = 1
+    while index < len(words) and words[index].startswith("-"):
+        index += 2 if words[index] in OPTIONS_WITH_VALUE else 1
+    if index >= len(words):
+        return None
+    return needs_user(words[index], words[index + 1:])
+
+
+def main():
+    try:
+        event = json.loads(sys.stdin.read() or "{}")
+    except ValueError:
+        return
+    command = (event.get("tool_input") or {}).get("command") or ""
+    for segment in re.split(r"&&|\|\||[;|\n]|\$\(|`", command):
+        reason = git_reason(segment.strip().lstrip("("))
+        if reason:
+            print(json.dumps({"hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "ask",
+                "permissionDecisionReason": f"dev-brain: {reason}; it needs your explicit decision.",
+            }}))
+            return
+
+
+if __name__ == "__main__":
+    main()

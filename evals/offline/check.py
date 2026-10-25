@@ -8,7 +8,8 @@ tool calls and records every request. Nothing reaches a real provider.
 It verifies what the kit controls: global rules and saved state reach the session,
 an oversized state becomes a notice, workflows expand and stay out of the skill
 listing, and the reviewer reads the diff with git but cannot write. It does not
-judge model behavior; use evals/scenarios/ for that.
+judge model behavior; use evals/scenarios/ for that. It also checks that commit and push
+need the user even when the user's settings allow git.
 
 usage: python3 evals/offline/check.py      (CLAUDE=<binary> if claude is not on PATH)
 """
@@ -101,9 +102,9 @@ class Sandbox:
     def write_state(self, text):
         (self.repo / ".dev-brain" / "STATE.md").write_text(text)
 
-    def run(self, prompt, steps):
+    def run(self, prompt, steps, *extra):
         self.mock.script(steps)
-        subprocess.run([self.claude, "-p", prompt, "--model", "mock-model"], cwd=self.repo,
+        subprocess.run([self.claude, "-p", prompt, "--model", "mock-model", *extra], cwd=self.repo,
                        env={**self.env, "PWD": str(self.repo)}, stdin=subprocess.DEVNULL,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=240)
         bodies = self.mock.agent_calls()
@@ -147,6 +148,22 @@ def main():
         written = (sandbox.repo / "leak.txt").exists() or (sandbox.repo / "touched.txt").exists()
         check("reviewer cannot write without approval",
               rejected == 3 and not written and (sandbox.repo / "app.txt").exists(), f"{rejected}/3 rejected")
+
+        # Even when the user's settings allow git, commit and push still need the user.
+        steps = [
+            {"tool": "Bash", "args": {"command": "git status --short", "description": "Status"}},
+            {"tool": "Bash", "args": {"command": "git commit -am wip", "description": "Commit"}},
+            {"tool": "Bash", "args": {"command": "git push origin main", "description": "Push"}},
+            {"text": "done"},
+        ]
+        commits = lambda: subprocess.run(["git", "rev-list", "--count", "HEAD"], cwd=sandbox.repo,
+                                         capture_output=True, text=True).stdout.strip()
+        before = commits()
+        results = tool_results(sandbox.run("save my work", steps, "--allowedTools", "Bash(git:*)"))
+        check("read-only git runs", any("app.txt" in r for r in results))
+        guarded = sum("needs your explicit decision" in r for r in results)
+        check("commit and push need the user even when git is allowed", guarded == 2 and commits() == before,
+              f"{guarded}/2 guarded")
 
         sandbox.write_state(STATE + "- stale line\n" * 300)
         bodies = sandbox.run("hello", [{"text": "done"}])

@@ -7,7 +7,8 @@ It provides:
 - the project's saved state, injected within a 3000-character budget;
 - user-invoked workflows: `start`, `resume`, `handoff`, `impact`, `learn`, `review` (no context cost until invoked);
 - three skills the model loads when relevant: `debugging`, `engineering-risk`, `review-feedback`;
-- a read-only reviewer subagent.
+- a read-only reviewer subagent;
+- a guard that makes Claude Code ask you before any commit, push or destructive git command.
 
 > Manuale utente in italiano: [MANUALE.md](MANUALE.md).
 
@@ -48,10 +49,11 @@ For planning use Claude Code's native plan mode (Shift+Tab): it is read-only by 
 
 | Always active | Used when helpful | Requires your explicit decision |
 | --- | --- | --- |
-| Code-design guidance and self-review of changed code | Impact analysis, independent review, session continuity | Commits, amendments and pushes; unrelated refactors, new dependencies or architecture changes must be proposed first |
+| Code-design guidance and self-review of changed code | Impact analysis, independent review, session continuity | Commits, amendments, pushes and branch changes (enforced: Claude Code asks you); unrelated refactors, new dependencies or architecture changes must be proposed first |
 
 ## What is enforced, what is instructed
 
+- **No commit without you: enforced.** A `PreToolUse` hook answers "ask" for `git commit` (including `--amend`), `push`, `merge`, `rebase`, `cherry-pick`, `revert`, `checkout`/`switch`, history-moving `reset`, `clean -f`, `branch -d/-m/-f`, `stash drop/pop/clear` and tag deletion, even inside chained commands and even when your settings allow git. Read-only git runs normally.
 - **Reviewer read-only: enforced.** Its tool list allows Read, Grep, Glob and `git diff/log/show/status`; any command that creates, changes or removes files needs your approval.
 - **State budget: enforced.** Over 3000 characters only a notice is injected, telling the model to read the file and suggest `handoff`.
 - **Everything else is instructed:** rules guide the model; they do not guarantee good code.
@@ -62,13 +64,13 @@ For planning use Claude Code's native plan mode (Shift+Tab): it is read-only by 
 python3 evals/offline/check.py        # CLAUDE=<binary> if claude is not on PATH
 ```
 
-Installs the plugin into a throwaway home, replaces the model with a local mock that records every request, and checks in about 15 seconds, at zero token cost: rules and state reach the session, oversized state becomes a notice, workflows expand and stay out of the skill listing, the reviewer reads the diff but cannot write. It does not judge model behavior; `evals/scenarios/` describes the real-model scenarios and `evals/results.md` records decisions and evidence.
+Installs the plugin into a throwaway home, replaces the model with a local mock that records every request, and checks in about 20 seconds, at zero token cost: rules and state reach the session, oversized state becomes a notice, workflows expand and stay out of the skill listing, the reviewer reads the diff but cannot write, and commit and push need you even when your settings allow git. It does not judge model behavior; `evals/scenarios/` describes the real-model scenarios and `evals/results.md` records decisions and evidence.
 
 ## Layout
 
 ```
 .claude-plugin/marketplace.json   marketplace listing the plugin
-core/                             the plugin: AGENTS.md rules, skills/, agents/, hooks/, bin/
+core/                             the plugin: AGENTS.md rules, skills/, agents/, hooks/, bin/ (context and git guard)
 evals/                            scenarios, fixtures, results, offline check
 MANUALE.md                        Italian user manual
 ```

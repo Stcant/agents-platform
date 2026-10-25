@@ -1,6 +1,6 @@
 # dev-brain — Manuale d'uso
 
-> Manuale utente in italiano; il resto del kit è in inglese. Versione 2026-10-25, plugin 2.0.0, provato su Claude Code 2.1.310. Indipendente dal provider del modello.
+> Manuale utente in italiano; il resto del kit è in inglese. Versione 2026-10-25, plugin 2.1.0, provato su Claude Code 2.1.310. Indipendente dal provider del modello.
 
 ## Avvio rapido
 
@@ -27,7 +27,7 @@ Un plugin per Claude Code. Fa tre cose:
 2. **Continuità**: lo stato del progetto (`.dev-brain/STATE.md`) arriva in ogni sessione, anche dopo `/clear` e dopo la compattazione.
 3. **Workflow e reviewer**: procedure ripetibili per adottare una repo, riprendere, chiudere, analizzare l'impatto, capire un flusso e fare review in sola lettura.
 
-Non decide quando committare, non sostituisce test né la tua revisione, e non garantisce che il modello segua le regole: le regole sono contesto. Imposti davvero dallo strumento sono solo due vincoli: il reviewer in sola lettura e il budget dello stato.
+Non decide quando committare, non sostituisce test né la tua revisione, e non garantisce che il modello segua le regole: le regole sono contesto. Imposti davvero dallo strumento sono tre vincoli: nessun commit senza di te, il reviewer in sola lettura e il budget dello stato.
 
 ---
 
@@ -46,7 +46,7 @@ claude plugin install dev-brain@dev-brain
 
 Il plugin non tocca `CLAUDE.md` né le tue impostazioni: regole e stato arrivano da un hook `SessionStart`.
 
-**Verifica:** `python3 evals/offline/check.py` dalla cartella del kit deve stampare `ALL PASS` (sezione 8).
+**Verifica:** `python3 evals/offline/check.py` dalla cartella del kit deve stampare `ALL PASS` (sezione 9).
 
 ---
 
@@ -96,7 +96,22 @@ Si invocano con `/dev-brain:<nome>`. Il testo dopo il nome è l'argomento. Non c
 
 ---
 
-## 5. Il reviewer
+## 5. Nessun commit senza di te
+
+La regola globale vieta commit, push, cambi di branch e comandi git distruttivi senza una tua decisione esplicita. Un hook `PreToolUse` la **impone**: prima di ogni comando Bash controlla se contiene uno di questi e, se sì, Claude Code ti chiede conferma.
+
+- `git commit` (anche `--amend`), `push`, `merge`, `rebase`, `cherry-pick`, `revert`, `am`;
+- `checkout`, `switch`;
+- `reset` che sposta il branch (`--hard`, `--soft`, `HEAD~1`…);
+- `clean -f`, `branch -d/-D/-m/-f`, `stash drop/pop/clear`, `tag -d/-f`.
+
+Vale anche dentro comandi concatenati (`git add -A && git commit …`), con opzioni globali (`git -C dir commit`), e anche se nelle tue impostazioni hai permesso git: la richiesta arriva comunque. I comandi in sola lettura (`status`, `diff`, `log`, `show`, `stash`, `reset <file>`) passano senza chiedere.
+
+Se rispondi sì, il commit avviene: la decisione resta tua, ed è il punto.
+
+---
+
+## 6. Il reviewer
 
 Subagente `dev-brain:reviewer`, in sola lettura **imposta**. Può usare Read, Grep, Glob e `git diff/log/show/status`; ogni comando che crea, modifica o cancella file chiede la tua approvazione. Rispondi no.
 
@@ -104,7 +119,7 @@ Riporta difetti di correttezza, sicurezza, integrità dei dati o requisiti, sepa
 
 ---
 
-## 6. Le skill
+## 7. Le skill
 
 Il modello le carica quando servono; puoi anche chiederle per nome.
 
@@ -116,7 +131,7 @@ Il modello le carica quando servono; puoi anche chiederle per nome.
 
 ---
 
-## 7. Lo stato
+## 8. Lo stato
 
 Formato di `.dev-brain/STATE.md`:
 
@@ -146,7 +161,7 @@ Regole: evidenza reale con comando, righe vecchie sostituite (non è un diario),
 
 ---
 
-## 8. Manutenzione del kit
+## 9. Manutenzione del kit
 
 ```text
 .claude-plugin/marketplace.json   elenca il plugin
@@ -166,7 +181,8 @@ Il **controllo offline** installa il plugin in una home temporanea e sostituisce
 - regole e stato nella sessione;
 - avviso per lo stato troppo lungo;
 - workflow che si espandono e restano fuori dall'elenco delle skill;
-- reviewer che legge il diff ma non scrive.
+- reviewer che legge il diff ma non scrive;
+- commit e push che chiedono conferma anche con git permesso nelle impostazioni.
 
 Non valuta la qualità delle risposte.
 
@@ -174,7 +190,7 @@ Non valuta la qualità delle risposte.
 
 ---
 
-## 9. Problemi frequenti
+## 10. Problemi frequenti
 
 | Sintomo | Soluzione |
 | --- | --- |
@@ -182,11 +198,12 @@ Non valuta la qualità delle risposte.
 | Lo stato non arriva | File nella radice, non vuoto, sotto 3000 caratteri; `python3` disponibile; nuova sessione |
 | Dopo un aggiornamento vedo la versione vecchia | `claude plugin marketplace update dev-brain` e nuova sessione |
 | Il reviewer chiede di eseguire un comando che scrive | Rispondi no |
+| Claude Code chiede conferma per un `git commit` | È il guard di dev-brain: conferma solo se hai deciso tu di committare |
 | Ho dati sensibili nello stato | Rimuovili subito; non committare |
 
 ---
 
-## 10. Limiti noti
+## 11. Limiti noti
 
 - L'effetto delle regole sulla qualità del codice **non è misurato** con un modello reale: le prove esistenti sono poche e sintetiche (`evals/results.md`). È il prossimo lavoro da fare.
 - Il controllo offline verifica cosa il kit invia e permette, non le risposte.
