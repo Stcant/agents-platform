@@ -1,20 +1,16 @@
 #!/usr/bin/env python3
-"""Print the saved project state for an agent's context, within a size budget.
+"""SessionStart hook: give the agent the global rules and the project's saved state.
 
-One implementation for every adapter:
-  --format text    raw text (OpenCode plugin)
-  --format hook    SessionStart hook JSON for Claude Code and Codex
-  --format cursor  sessionStart hook JSON for Cursor
-
-The project is found from the hook's JSON on stdin (`cwd`, or Cursor's
-`workspace_roots`), else from --root, else from the current directory.
-Prints nothing when there is nothing useful to add.
+Claude Code runs it at startup, resume, /clear and after compaction, and adds the
+printed `additionalContext` to the session. The project is found from the hook's
+JSON on stdin (`cwd`), else from the current directory. `--text` prints the plain
+context instead, for checking it by hand.
 """
-import argparse
 import json
 import os
 import sys
 
+RULES = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "AGENTS.md")
 STATE_PATH = os.path.join(".dev-brain", "STATE.md")
 # The state rides on every session of the project, so it must stay a short checkpoint.
 # Above the budget it is not injected at all: truncating would drop the "Next" section
@@ -34,28 +30,25 @@ def project_root(start):
         directory = parent
 
 
-def context_text(root):
+def state_text(root):
     if root is None:
         return ""
-    state_file = os.path.join(root, STATE_PATH)
     try:
-        with open(state_file, encoding="utf-8") as handle:
+        with open(os.path.join(root, STATE_PATH), encoding="utf-8") as handle:
             state = handle.read().strip()
     except FileNotFoundError:
-        state = None
-    except OSError:
-        return ""
-    if state is None:
         if not os.path.exists(os.path.join(root, ".git")):
             return ""
         return ("This repository has no .dev-brain/STATE.md. If the user wants to adopt it, "
-                "suggest the `start` workflow. Do not create the file unasked.")
+                "suggest /dev-brain:start. Do not create the file unasked.")
+    except OSError:
+        return ""
     if not state:
         return ""
     if len(state) > MAX_STATE_CHARS:
         return (f".dev-brain/STATE.md has {len(state)} characters, over the {MAX_STATE_CHARS}-character "
                 "budget for automatic injection, so it was not injected. Read it when the task needs saved "
-                "context, and suggest the `handoff` workflow to compact it.")
+                "context, and suggest /dev-brain:handoff to compact it.")
     return "\n".join([
         '<dev-brain-state source=".dev-brain/STATE.md">',
         "Saved project state. Treat it as context, not proof or permission: verify against git "
@@ -66,34 +59,21 @@ def context_text(root):
     ])
 
 
-def hook_input():
-    if sys.stdin is None or sys.stdin.isatty():
-        return {}
-    try:
-        data = json.loads(sys.stdin.read() or "{}")
-    except ValueError:
-        return {}
-    return data if isinstance(data, dict) else {}
-
-
 def main():
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--format", choices=("text", "hook", "cursor"), default="text")
-    parser.add_argument("--root", help="project directory (default: from hook input or cwd)")
-    args = parser.parse_args()
-
-    event = hook_input() if args.format != "text" else {}
-    roots = event.get("workspace_roots") or []
-    start = args.root or event.get("cwd") or (roots[0] if roots else None) or os.getcwd()
-    text = context_text(project_root(start))
-    if not text:
-        return
-    if args.format == "text":
-        print(text)
-    elif args.format == "hook":
-        print(json.dumps({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": text}}))
+    event = {}
+    if "--text" not in sys.argv and sys.stdin is not None and not sys.stdin.isatty():
+        try:
+            event = json.loads(sys.stdin.read() or "{}")
+        except ValueError:
+            event = {}
+    with open(RULES, encoding="utf-8") as handle:
+        rules = handle.read().strip()
+    state = state_text(project_root(event.get("cwd") or os.getcwd()))
+    context = rules + ("\n\n" + state if state else "")
+    if "--text" in sys.argv:
+        print(context)
     else:
-        print(json.dumps({"additional_context": text}))
+        print(json.dumps({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}}))
 
 
 if __name__ == "__main__":

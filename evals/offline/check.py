@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
-"""Zero-token check of the installed kit against the real agent binaries.
+"""Zero-token check of the dev-brain plugin against the real Claude Code binary.
 
-For every agent CLI found (opencode, claude, codex; override with OPENCODE,
-CLAUDE, CODEX), the kit is installed into a throwaway home with install.py and
-the model is replaced by evals/offline/mock_model.py, which replays scripted
+The plugin is installed from this repository's marketplace into a throwaway home,
+and the model is replaced by evals/offline/mock_model.py, which replays scripted
 tool calls and records every request. Nothing reaches a real provider.
 
-It verifies what the kit controls: global rules and saved state reach the agent,
-an oversized state becomes a notice, workflows expand, and the reviewer reads
-the diff with git but cannot write. It does not judge model behavior; use
-evals/scenarios/ for that. Cursor has no headless CLI here: its generated files
-are only checked for presence.
+It verifies what the kit controls: global rules and saved state reach the session,
+an oversized state becomes a notice, workflows expand and stay out of the skill
+listing, and the reviewer reads the diff with git but cannot write. It does not
+judge model behavior; use evals/scenarios/ for that.
 
-usage: python3 evals/offline/check.py
+usage: python3 evals/offline/check.py      (CLAUDE=<binary> if claude is not on PATH)
 """
 import json
 import os
@@ -29,8 +27,11 @@ KIT = Path(__file__).resolve().parents[2]
 RULES = "Personal engineering rules"           # first line of core/AGENTS.md
 STATE_MARK = "Saved project state. Treat it"   # header of the injected state block
 NOTICE = "over the 3000-character budget"
-REVIEW_FLOW = "Review the current changes by delegating"  # core/workflows/review
-START_FLOW = "Adopt the current repository into the dev-brain harness"  # core/workflows/start
+WORKFLOWS = {
+    "start": "Adopt the current repository into the dev-brain harness",
+    "resume": "Reconcile the saved state with reality",
+    "review": "Review the current changes by delegating",
+}
 STATE = """# State — fixture
 Updated: 2026-01-01 · Branch: main
 
@@ -50,59 +51,43 @@ def check(name, ok, detail=""):
         failures.append(name)
 
 
-def text_of(value):
-    return value if isinstance(value, str) else json.dumps(value)
-
-
 def system_text(body):
-    """System and developer instructions of one request, in any of the three wire formats."""
-    parts = [text_of(body.get("system", "")), text_of(body.get("instructions", ""))]
-    for message in body.get("messages") or body.get("input") or []:
-        if isinstance(message, dict) and message.get("role") in ("system", "developer"):
-            parts.append(text_of(message.get("content")))
-    return "\n".join(parts)
+    """The system prompt plus system-role messages, where Claude Code puts hook context."""
+    parts = [body.get("system", "")] + [m.get("content") for m in body.get("messages", []) if m.get("role") == "system"]
+    return "\n".join(part if isinstance(part, str) else json.dumps(part) for part in parts)
 
 
 def tool_results(bodies):
-    """Tool outputs fed back to the model, once per call id, in order."""
+    """Tool outputs fed back to the model, once per tool_use id, in order."""
     results = {}
     for body in bodies:
-        for message in body.get("messages") or body.get("input") or []:
-            if not isinstance(message, dict):
-                continue
-            if message.get("role") == "tool":  # chat completions
-                results.setdefault(message.get("tool_call_id"), text_of(message.get("content")))
-            if message.get("type") == "function_call_output":  # responses
-                results.setdefault(message.get("call_id"), text_of(message.get("output")))
-            if message.get("role") == "user" and isinstance(message.get("content"), list):  # anthropic
+        for message in body.get("messages", []):
+            if message.get("role") == "user" and isinstance(message.get("content"), list):
                 for block in message["content"]:
                     if isinstance(block, dict) and block.get("type") == "tool_result":
-                        results.setdefault(block.get("tool_use_id"), text_of(block.get("content")))
+                        content = block.get("content")
+                        results.setdefault(block.get("tool_use_id"),
+                                           content if isinstance(content, str) else json.dumps(content))
     return list(results.values())
 
 
-def binary(name, variable):
-    path = os.environ.get(variable) or shutil.which(name)
-    return path if path and Path(path).exists() else None
-
-
 class Sandbox:
-    """Throwaway home, fixture repository and installed kit."""
+    """Throwaway home with the plugin installed, and a fixture repository with a pending change."""
 
-    def __init__(self, tools, bins):
+    def __init__(self, claude, mock):
+        self.claude, self.mock = claude, mock
         self.root = Path(tempfile.mkdtemp(prefix="dev-brain-offline-"))
         home = self.root / "home"
         home.mkdir()
-        bin_dir = self.root / "bin"
-        bin_dir.mkdir()
-        for name, path in bins.items():
-            (bin_dir / name).symlink_to(path)
-        # A clean environment: nothing from the caller's own agent setup leaks in.
-        self.env = {"PATH": f"{bin_dir}:{os.environ.get('PATH', '/usr/bin:/bin')}", "HOME": str(home),
-                    "LANG": "C.UTF-8", "TERM": "dumb", "NO_PROXY": "127.0.0.1,localhost",
-                    "XDG_CONFIG_HOME": str(home / ".config"), "XDG_DATA_HOME": str(home / ".local/share"),
-                    "XDG_STATE_HOME": str(home / ".local/state"), "XDG_CACHE_HOME": str(home / ".cache"),
-                    "CLAUDE_CONFIG_DIR": str(home / ".claude"), "CODEX_HOME": str(home / ".codex")}
+        # A clean environment: nothing from the caller's own Claude Code setup leaks in.
+        self.env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "HOME": str(home), "LANG": "C.UTF-8",
+                    "TERM": "dumb", "NO_PROXY": "127.0.0.1,localhost", "CLAUDE_CONFIG_DIR": str(home / ".claude"),
+                    "ANTHROPIC_BASE_URL": mock.url, "ANTHROPIC_API_KEY": "sk-offline-check",
+                    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1", "DISABLE_AUTOUPDATER": "1"}
+        for args in (["marketplace", "add", str(KIT)], ["install", "dev-brain@dev-brain"]):
+            result = subprocess.run([claude, "plugin", *args], env=self.env, capture_output=True, text=True)
+            if result.returncode:
+                raise SystemExit(f"FAIL  claude plugin {' '.join(args)}: {result.stdout}{result.stderr}")
         self.repo = self.root / "repo"
         (self.repo / ".dev-brain").mkdir(parents=True)
         git = ["git", "-c", "user.name=check", "-c", "user.email=check@example.invalid"]
@@ -111,180 +96,62 @@ class Sandbox:
         subprocess.run(git + ["add", "app.txt"], cwd=self.repo, check=True)
         subprocess.run(git + ["commit", "-qm", "fixture"], cwd=self.repo, check=True)
         (self.repo / "app.txt").write_text("hello, world\n")
-        self.small_state()
-        result = subprocess.run([sys.executable, str(KIT / "install.py"), *tools], env=self.env,
-                                capture_output=True, text=True)
-        if result.returncode:
-            raise SystemExit(f"FAIL  install.py: {result.stdout}{result.stderr}")
+        self.write_state(STATE)
 
-    def small_state(self):
-        (self.repo / ".dev-brain" / "STATE.md").write_text(STATE)
+    def write_state(self, text):
+        (self.repo / ".dev-brain" / "STATE.md").write_text(text)
 
-    def big_state(self):
-        (self.repo / ".dev-brain" / "STATE.md").write_text(STATE + "- stale line\n" * 300)
-
-    def clean_repo(self):
-        for name in ("leak.txt", "touched.txt"):
-            (self.repo / name).unlink(missing_ok=True)
-        (self.repo / "app.txt").write_text("hello, world\n")
-
-    def run(self, mock, cmd, steps, env=None):
-        mock.script(steps)
-        subprocess.run(cmd, cwd=self.repo, env={**self.env, "PWD": str(self.repo), **(env or {})},
-                       stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                       timeout=240)
-        bodies = mock.agent_calls()
+    def run(self, prompt, steps):
+        self.mock.script(steps)
+        subprocess.run([self.claude, "-p", prompt, "--model", "mock-model"], cwd=self.repo,
+                       env={**self.env, "PWD": str(self.repo)}, stdin=subprocess.DEVNULL,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=240)
+        bodies = self.mock.agent_calls()
         if not bodies:
-            check(f"{Path(cmd[0]).name} sent a request to the mock model", False)
+            check("claude sent a request to the mock model", False)
         return bodies
 
 
-def write_protected(sandbox, results, expected_rejections):
-    words = ("permission.rejected", "needs approval", "requires approval", "has been denied")
-    rejected = sum(any(word in r for word in words) for r in results)
-    return (rejected == expected_rejections and not (sandbox.repo / "leak.txt").exists()
-            and not (sandbox.repo / "touched.txt").exists() and (sandbox.repo / "app.txt").exists()), rejected
-
-
-def check_opencode(sandbox, mock, opencode):
-    config_file = Path(sandbox.env["XDG_CONFIG_HOME"]) / "opencode" / "opencode.json"
-    config = json.loads(config_file.read_text())
-    config["model"] = "mock/mock"
-    config["providers"] = {"mock": {
-        "name": "Mock", "package": "@opencode/ai/providers/openai-compatible",
-        "settings": {"baseURL": mock.url + "/v1"},
-        "models": {"mock": {"name": "Mock", "capabilities": {"tools": True, "input": ["text"], "output": ["text"]},
-                            "limit": {"context": 200000, "output": 8000}}}}}
-    config_file.write_text(json.dumps(config))
-    cmd = [opencode, "run", "--standalone", "-m", "mock/mock", "check"]
-    env = {"OPENCODE_DISABLE_MODELS_FETCH": "1", "OPENCODE_DISABLE_FREE_MODELS": "1"}
-    steps = [
-        {"tool": "subagent", "args": {"agent": "reviewer", "description": "review", "prompt": "Review all changes."}},
-        {"tool": "shell", "args": {"command": "git diff HEAD"}},
-        {"tool": "shell", "args": {"command": "git diff HEAD > leak.txt"}},
-        {"tool": "shell", "args": {"command": "git diff HEAD --output=leak.txt"}},
-        {"tool": "shell", "args": {"command": "git status; rm app.txt"}},
-        {"text": "no findings"},
-        {"text": "done"},
-    ]
-    bodies = sandbox.run(mock, cmd, steps, env)
-    main = [b for b in bodies if any(t["function"]["name"] == "edit" for t in b["tools"])]
-    child = [b for b in bodies if b not in main]
-    results = tool_results(bodies)
-    check("opencode: global rules loaded", bool(main) and RULES in system_text(main[0]))
-    start = Path(sandbox.env["XDG_CONFIG_HOME"]) / "opencode" / "commands" / "start.md"
-    check("opencode: /start command generated", start.exists() and START_FLOW in start.read_text())
-    check("opencode: state in the main session", bool(main) and all(STATE_MARK in system_text(b) for b in main))
-    check("opencode: state not in the subagent", bool(child) and not any(STATE_MARK in system_text(b) for b in child))
-    check("opencode: reviewer reads the diff with git", any("hello, world" in r for r in results))
-    ok, rejected = write_protected(sandbox, results, 3)
-    check("opencode: reviewer cannot write (>, --output, rm)", ok, f"{rejected}/3 rejected")
-
-    sandbox.big_state()
-    bodies = sandbox.run(mock, cmd, [{"text": "done"}], env)
-    system = system_text(bodies[0]) if bodies else ""
-    check("opencode: oversized state becomes a notice", NOTICE in system and "stale line" not in system)
-    sandbox.small_state()
-    sandbox.clean_repo()
-
-
-def check_claude(sandbox, mock, claude):
-    env = {"ANTHROPIC_BASE_URL": mock.url, "ANTHROPIC_API_KEY": "sk-offline-check",
-           "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1", "DISABLE_AUTOUPDATER": "1"}
-
-    def cmd(prompt):
-        return [claude, "-p", prompt, "--model", "mock-model"]
-
-    bodies = sandbox.run(mock, cmd("/dev-brain:review"), [{"text": "done"}], env)
-    everything = json.dumps(bodies)
-    check("claude-code: global rules loaded", RULES in everything)
-    check("claude-code: state injected by the SessionStart hook", bool(bodies) and STATE_MARK in system_text(bodies[0]))
-    check("claude-code: /dev-brain:review expands the workflow", REVIEW_FLOW in everything)
-    bodies = sandbox.run(mock, cmd("/dev-brain:start"), [{"text": "done"}], env)
-    check("claude-code: /dev-brain:start expands the workflow", START_FLOW in json.dumps(bodies))
-    check("claude-code: user-invoked workflows stay out of the skill listing",
-          "dev-brain:debugging" in everything and "dev-brain:handoff" not in everything)
-
-    steps = [
-        {"tool": "Agent", "args": {"description": "review", "prompt": "Review all changes.",
-                                   "subagent_type": "dev-brain:reviewer"}},
-        {"tool": "Bash", "args": {"command": "git diff HEAD", "description": "Show changes"}},
-        {"tool": "Bash", "args": {"command": "git diff HEAD > leak.txt", "description": "Save changes"}},
-        {"tool": "Bash", "args": {"command": "touch touched.txt", "description": "Create file"}},
-        {"tool": "Bash", "args": {"command": "git status; rm app.txt", "description": "Remove file"}},
-        {"text": "no findings"},
-        {"text": "done"},
-    ]
-    bodies = sandbox.run(mock, cmd("check the changes"), steps, env)
-    results = tool_results(bodies)
-    check("claude-code: reviewer reads the diff with git", any("hello, world" in r for r in results))
-    ok, rejected = write_protected(sandbox, results, 3)
-    check("claude-code: reviewer cannot write without approval", ok, f"{rejected}/3 rejected")
-
-    sandbox.big_state()
-    bodies = sandbox.run(mock, cmd("hello"), [{"text": "done"}], env)
-    system = system_text(bodies[0]) if bodies else ""
-    check("claude-code: oversized state becomes a notice", NOTICE in system and "stale line" not in system)
-    sandbox.small_state()
-    sandbox.clean_repo()
-
-
-def check_codex(sandbox, mock, codex):
-    provider = (f'model_providers.mock={{ name = "mock", base_url = "{mock.url}/v1", '
-                'wire_api = "responses", env_key = "MOCK_KEY" }')
-
-    def cmd(prompt, *extra):
-        return [codex, "exec", "--skip-git-repo-check", "-c", 'model_provider="mock"', "-c", 'model="mock"',
-                "-c", provider, *extra, prompt]
-
-    env = {"MOCK_KEY": "offline-check"}
-    bodies = sandbox.run(mock, cmd("$dev-brain:review"), [{"text": "done"}], env)
-    everything = json.dumps(bodies)
-    check("codex: global rules loaded", RULES in everything)
-    check("codex: $dev-brain:review expands the workflow", REVIEW_FLOW in everything)
-    check("codex: reviewer role registered", "Read-only reviewer for correctness" in everything)
-    bodies = sandbox.run(mock, cmd("$dev-brain:start"), [{"text": "done"}], env)
-    check("codex: $dev-brain:start expands the workflow", START_FLOW in json.dumps(bodies))
-    check("codex: state hook waits for the user's trust", STATE_MARK not in everything)
-    # Trusting a hook is the user's decision; the check bypasses it only inside its own sandbox.
-    bodies = sandbox.run(mock, cmd("hello", "--dangerously-bypass-hook-trust"), [{"text": "done"}], env)
-    check("codex: state injected once the hook is trusted", STATE_MARK in json.dumps(bodies))
-    sandbox.big_state()
-    bodies = sandbox.run(mock, cmd("hello", "--dangerously-bypass-hook-trust"), [{"text": "done"}], env)
-    everything = json.dumps(bodies)
-    check("codex: oversized state becomes a notice", NOTICE in everything and "stale line" not in everything)
-    sandbox.small_state()
-
-
-def check_cursor(sandbox):
-    home = Path(sandbox.env["HOME"]) / ".cursor"
-    expected = ["rules/dev-brain.mdc", "agents/reviewer.md", "hooks.json", "skills/start/SKILL.md",
-                "skills/review/SKILL.md", "skills/debugging/SKILL.md"]
-    missing = [name for name in expected if not (home / name).exists()]
-    check("cursor: files generated (not run: no headless Cursor here)", not missing, f"missing {missing}")
-    agent = home / "agents" / "reviewer.md"
-    check("cursor: reviewer is readonly", agent.exists() and "readonly: true" in agent.read_text())
-
-
 def main():
-    bins = {}
-    for name, variable in (("opencode", "OPENCODE"), ("claude", "CLAUDE"), ("codex", "CODEX")):
-        path = binary(name, variable)
-        if path:
-            bins[name] = path
-    names = {"opencode": "opencode", "claude": "claude-code", "codex": "codex"}
-    tools = [names[name] for name in bins] + ["cursor"]
-    print(f"agents: {', '.join(tools)}")
-    sandbox = Sandbox(tools, bins)
+    claude = os.environ.get("CLAUDE") or shutil.which("claude")
+    if not claude:
+        raise SystemExit("claude not found; set CLAUDE to the Claude Code binary")
     mock = MockModel()
+    sandbox = Sandbox(claude, mock)
     try:
-        if "opencode" in bins:
-            check_opencode(sandbox, mock, bins["opencode"])
-        if "claude" in bins:
-            check_claude(sandbox, mock, bins["claude"])
-        if "codex" in bins:
-            check_codex(sandbox, mock, bins["codex"])
-        check_cursor(sandbox)
+        bodies = sandbox.run("hello", [{"text": "done"}])
+        system = system_text(bodies[0]) if bodies else ""
+        everything = json.dumps(bodies)
+        check("global rules in the system prompt", RULES in system)
+        check("saved state in the system prompt", STATE_MARK in system)
+        check("workflows stay out of the skill listing (zero context cost)",
+              "dev-brain:debugging" in everything and "dev-brain:handoff" not in everything)
+        for name, marker in WORKFLOWS.items():
+            bodies = sandbox.run(f"/dev-brain:{name}", [{"text": "done"}])
+            check(f"/dev-brain:{name} expands the workflow", marker in json.dumps(bodies))
+
+        steps = [
+            {"tool": "Agent", "args": {"description": "review", "prompt": "Review all changes.",
+                                       "subagent_type": "dev-brain:reviewer"}},
+            {"tool": "Bash", "args": {"command": "git diff HEAD", "description": "Show changes"}},
+            {"tool": "Bash", "args": {"command": "git diff HEAD > leak.txt", "description": "Save changes"}},
+            {"tool": "Bash", "args": {"command": "touch touched.txt", "description": "Create file"}},
+            {"tool": "Bash", "args": {"command": "git status; rm app.txt", "description": "Remove file"}},
+            {"text": "no findings"},
+            {"text": "done"},
+        ]
+        results = tool_results(sandbox.run("check the changes", steps))
+        check("reviewer reads the diff with git", any("hello, world" in r for r in results))
+        words = ("needs approval", "requires approval", "has been denied")
+        rejected = sum(any(word in r for word in words) for r in results)
+        written = (sandbox.repo / "leak.txt").exists() or (sandbox.repo / "touched.txt").exists()
+        check("reviewer cannot write without approval",
+              rejected == 3 and not written and (sandbox.repo / "app.txt").exists(), f"{rejected}/3 rejected")
+
+        sandbox.write_state(STATE + "- stale line\n" * 300)
+        bodies = sandbox.run("hello", [{"text": "done"}])
+        system = system_text(bodies[0]) if bodies else ""
+        check("oversized state becomes a notice", NOTICE in system and "stale line" not in system)
     finally:
         mock.server.shutdown()
         shutil.rmtree(sandbox.root, ignore_errors=True)

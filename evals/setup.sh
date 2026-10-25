@@ -5,7 +5,7 @@
 set -eu
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-dest="${TMPDIR:-/tmp}/opencode/dev-brain-evals"
+dest="${TMPDIR:-/tmp}/dev-brain-evals"
 name="dev-brain eval"
 email="dev-brain@example.invalid"
 

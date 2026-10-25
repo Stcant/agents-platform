@@ -2,22 +2,21 @@
 Updated: 2026-10-25 · Branch: improve/token-budget-and-review
 
 ## Goal
-Agent-independent harness (OpenCode, Claude Code, Codex CLI, Cursor; any model provider) for readable, maintainable code at the lowest context cost — acceptance: one `core/` source, `install.py` per agent, every claim backed by `evals/` evidence.
+Claude Code plugin for readable, maintainable code at the lowest context cost — acceptance: installs from GitHub with two commands, every claim backed by `evals/` evidence, measured benefit on real tasks.
 
 ## Done (latest first, max 5)
-- `core/` + `install.py` adapters for 4 agents; Claude Code and Codex via a local plugin marketplace in `build/`; state via one script `core/bin/dev-brain-context` — evidence: `python3 evals/offline/check.py` ALL PASS (OpenCode 2.1.4, Claude Code 2.1.310, Codex 0.164, mock model); Cursor files only
-- `/review` delegates the diff to the reviewer; plugin skips subagents; 3000-char state budget — evidence: `evals/results.md` 2026-10-25
-- hph adoption patch (`AGENTS.md` + 1.3 KB state) — evidence: state and resume workflow reached Claude Code and Codex on the hph copy; not pushed
+- Plugin-only layout: rules + state via `SessionStart` hook, workflows as zero-cost skills, `plan` and other adapters removed, docs compacted — evidence: `python3 evals/offline/check.py` ALL PASS twice (Claude Code 2.1.310, mock model)
+- hph adopted: `AGENTS.md` + 1.3 KB state, `harness/` retired — evidence: hph PR #10 open
+- Review no longer pays the diff three times (7005 → 1101 chars on hph) — evidence: `evals/results.md` 2026-10-25
 
 ## In progress / blockers
-- Codex reviewer read-only — status: blocked upstream; `sandbox_mode` not applied to spawned agents in 0.164, instruction only
-- Cursor — status: NOT RUN; no CLI in the test environment; `sessionStart` context dropped by an open Cursor bug
-- Real-model and TUI behavior of all workflows — status: NOT RUN
+- Benefit of the rules on real code — status: NOT RUN; user postponed the benchmark
+- Real-model and interactive behavior of the plugin — status: NOT RUN
 
 ## Known pre-existing failures
-- `opencode run "/command"` does not expand slash commands (CLI limitation)
+- none
 
 ## Next (max 3)
-1. Run `./install.sh` and `python3 evals/offline/check.py` locally; approve the Codex hook; try `review` and `resume` in each agent's TUI with a real model.
-2. Apply the hph patch, delete `harness/`, fix hph README's link to it.
-3. Add a non-Python maintainability scenario before changing design rules again.
+1. Merge PR #2, install from GitHub (`claude plugin marketplace add Stcant/agents-platform`), try `/dev-brain:start` and `/dev-brain:review` in a real session.
+2. Review and merge hph PR #10.
+3. Benchmark: same real hph tasks with and without the plugin; keep only rules that move the numbers.

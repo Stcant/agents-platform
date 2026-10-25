@@ -1,29 +1,31 @@
 # Maintaining dev-brain
 
-This repository is the source of a personal harness for coding agents (OpenCode, Claude Code, Codex CLI, Cursor). It is not an application.
+This repository is a Claude Code plugin marketplace with one plugin, `dev-brain`, in `core/`. It is not an application.
 Its primary goal is readable, maintainable code across languages and frameworks. Workflows and saved state support that goal.
 
 ## What belongs where
 
-- `core/` — the only source. `AGENTS.md` is the always-loaded rule set: keep it short, only instructions that change default behavior. `workflows/` (user-invoked, `disable-model-invocation: true`) and `skills/` use the Agent Skills format; `agents/reviewer.md` has neutral frontmatter; `bin/dev-brain-context` produces the injected state for every adapter; `templates/` are written into projects.
-- `adapters/` — only what cannot be expressed as files (the OpenCode plugin).
-- `install.py` — links `core/` or translates frontmatter per agent. It must not contain rules or prose for the model beyond frontmatter; if an adapter needs a rule, it belongs in `core/`.
-- `evals/` — scenarios, measured results, and `offline/check.py` with `offline/mock_model.py`, a zero-token check against the real agent binaries.
+- `core/AGENTS.md` — the global rules, injected into every session by the `SessionStart` hook. Keep it short: only instructions that change default behavior.
+- `core/skills/` — Agent Skills. User-invoked workflows (`start`, `resume`, `handoff`, `impact`, `learn`, `review`) set `disable-model-invocation: true`, so they cost no context until invoked; `debugging`, `engineering-risk`, `review-feedback` are loaded by the model when relevant.
+- `core/agents/reviewer.md` — the read-only reviewer; its `tools` line is the enforcement.
+- `core/hooks/hooks.json` + `core/bin/dev-brain-context` — inject rules and the project state (3000-character budget).
+- `core/.claude-plugin/plugin.json` — bump `version` on every change so installed copies refresh. `.claude-plugin/marketplace.json` at the root lists the plugin.
+- `evals/` — scenarios, measured results, and `offline/check.py` with `offline/mock_model.py`, a zero-token check against the real Claude Code binary.
 
 ## Changing the harness
 
 1. Run the relevant scenarios in `evals/scenarios/` against the current version and record the baseline.
 2. Make the smallest change that addresses an observed failure.
-3. Re-run the same scenarios with the change. After touching `core/`, an adapter or `install.py`, also run `python3 evals/offline/check.py`.
+3. Re-run the same scenarios, and `python3 evals/offline/check.py`.
 4. Keep the change only if it improves a scenario or removes a real cost. Delete instructions that do not change behavior.
-5. Record the result in `evals/results.md` with the date and the evidence.
+5. Record the result in `evals/results.md`: date, change, evidence, limits. Keep it a log of decisions, not of sessions.
 
 Never add rules by intuition alone. A rule that the model already follows is pure context cost.
 
 ## Constraints
 
 - All kit content is English. Exception: `MANUALE.md` is the Italian user manual.
-- Runtime dependencies: the agent itself, `python3` and `git`. The OpenCode plugin uses only `@opencode/plugin` and Node built-ins.
-- Workflows, skills and the reviewer must be portable: no absolute paths, no agent-specific syntax (`$ARGUMENTS`, `!` command expansion) in `core/`.
-- Claude Code and Codex install the plugin from `build/` (generated, git-ignored); Codex copies it and drops symlinks, so the build uses real copies.
+- Runtime dependencies: Claude Code, `python3`, `git`.
+- Skills and rules stay in standard formats (`AGENTS.md`, `SKILL.md`) with no absolute paths, so another agent can be supported later with an adapter instead of a rewrite.
+- Do not duplicate a rule or template across files: `core/` holds each once.
 - Do not copy project facts (stack, commands, state) from a destination repository into this source repository.

@@ -1,0 +1,11 @@
+{
+  "name": "dev-brain",
+  "owner": { "name": "Stcant" },
+  "plugins": [
+    {
+      "name": "dev-brain",
+      "source": "./core",
+      "description": "Readable, maintainable code at low context cost: global rules, project state, workflows, skills and a read-only reviewer."
+    }
+  ]
+}

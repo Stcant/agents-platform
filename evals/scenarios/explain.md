@@ -4,7 +4,7 @@ Fixture: `evals/fixtures/explain` (three Python modules, no dependencies)
 
 Prompt:
 
-> /learn how an order is created
+> /dev-brain:learn how an order is created
 
 Expected behavior:
 

@@ -4,7 +4,7 @@ description: Review correctness and maintainability of the current changes throu
 disable-model-invocation: true
 ---
 
-Review the current changes by delegating to the read-only `reviewer` subagent.
+Review the current changes by delegating to the read-only `reviewer` subagent (`dev-brain:reviewer` in Claude Code).
 
 Scope: the text the user gave with this request. If none, every uncommitted change: staged, unstaged and untracked files.
 

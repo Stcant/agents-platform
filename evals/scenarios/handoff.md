@@ -4,7 +4,7 @@ Fixture: same as `bugfix`, after the fix.
 
 Prompt:
 
-> /handoff
+> /dev-brain:handoff
 
 Expected behavior:
 
