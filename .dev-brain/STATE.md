@@ -5,6 +5,7 @@ Updated: 2026-10-25 · Branch: improve/token-budget-and-review
 Claude Code plugin for readable, maintainable code at the lowest context cost — acceptance: installs from GitHub with two commands, every claim backed by `evals/` evidence, measured benefit on real tasks.
 
 ## Done (latest first, max 5)
+- No commit without the user, enforced: `PreToolUse` git guard (plugin 2.1.0) — evidence: `python3 evals/offline/check.py` ALL PASS; mutation without the hook FAILs
 - Plugin-only layout: rules + state via `SessionStart` hook, workflows as zero-cost skills, `plan` and other adapters removed, docs compacted — evidence: `python3 evals/offline/check.py` ALL PASS twice (Claude Code 2.1.310, mock model)
 - hph adopted: `AGENTS.md` + 1.3 KB state, `harness/` retired — evidence: hph PR #10 open
 - Review no longer pays the diff three times (7005 → 1101 chars on hph) — evidence: `evals/results.md` 2026-10-25
