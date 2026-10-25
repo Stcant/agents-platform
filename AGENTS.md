@@ -9,13 +9,13 @@ Its primary goal is readable, maintainable code across languages and frameworks.
 - `global/commands/`, `global/agents/`, `global/skills/` — installed into `~/.config/opencode/` by `install.sh`.
 - `plugin/dev-brain/` — the V2 plugin injecting project state; registered in the global `opencode.json`.
 - `templates/` — files written into destination projects.
-- `evals/` — scenarios and measured results.
+- `evals/` — scenarios, measured results and `offline/check.py`, a zero-token check against a mock model.
 
 ## Changing the harness
 
 1. Run the relevant scenarios in `evals/scenarios/` against the current version and record the baseline.
 2. Make the smallest change that addresses an observed failure.
-3. Re-run the same scenarios with the change.
+3. Re-run the same scenarios with the change. After touching the plugin, agents or `install.sh`, also run `python3 evals/offline/check.py`.
 4. Keep the change only if it improves a scenario or removes a real cost. Delete instructions that do not change behavior.
 5. Record the result in `evals/results.md` with the date and the evidence.
 

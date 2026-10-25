@@ -164,3 +164,40 @@ Conclusion: the review policy now covers an observed gap in maintenance review. 
 Final static checks: `git diff --check` PASS; `bash -n evals/setup.sh` PASS; per-file `git diff --no-index --check -- /dev/null <changed-file>` PASS for all 12 changed/new paths (exit 1 for a differing new file is not a whitespace failure). A local `python3 -B` check also verified balanced Markdown fences, Python AST parsing, no machine paths in the edited global definitions, installed symlinks to the edited rules/reviewer/command, and instruction/state line budgets: PASS. The initial checker incorrectly required exit 0 from `--no-index`; it was corrected and rerun, with no source whitespace defect found.
 
 NOT RUN: the updated `/review` delegation/TUI path, scenarios in other languages, the full historical scenario set, or `evals/setup.sh` (it creates fixture commits; no commit was authorized). No docling work or service restart was performed.
+
+## Token budget and review cost, tested on hph (2026-10-25)
+
+Environment: OpenCode v2.1.4 (`@opencode/cli`), isolated `XDG_*` directories, kit installed with `install.sh`. The model was a local OpenAI-compatible mock that records each request and replays scripted tool calls (now `evals/offline/check.py`). No real model was called, so this measures what the harness sends and permits, not answer quality. Test repository: disposable copies of `Stcant/hph` (Rust/Leptos/PostgreSQL) at `d6ee299`.
+
+Baseline findings on the previous kit:
+
+- `/review` embedded the full `git diff` in the command message (7005 chars for a 5.9 KB diff in hph), then asked the main agent to paste it into the subagent prompt: the diff was paid as main input, main output and reviewer input. The title request also received the whole expanded message.
+- `/review` used `git diff`: staged-only changes produced an empty diff (`git diff --stat` printed nothing for a staged edit); untracked-only changes hit the "diff is empty, stop" step.
+- The plugin injected the state into subagent calls too (reviewer, explore, general). Its 80-line cap did not bound size: this repository's own state was 3900 chars.
+- `/resume` had a Python-only guard (`uv run` / `.venv`). In hph the recorded checks are `cargo test`/`cargo leptos build`, which compile the workspace.
+- `/start` ignored previous-kit files: hph carries `harness/PROJECT_STATE.md` (14.6 KB) and `PROJECT_MAP.md` (6.8 KB), whose "next action" (merge PR #8) was already done (`f54564b`).
+- `/plan` leaves the session on the `plan` agent; a follow-up "implement it" is refused by the plan-mode reminder. Expected OpenCode behavior, now stated in the manual.
+
+Changes and evidence:
+
+| Check | Before | After |
+| --- | --- | --- |
+| `/review` message in the main session (hph, 5.9 KB diff) | 7005 chars, diff copied again as output | 1101 chars; the reviewer runs `git diff HEAD` itself |
+| Staged-only / untracked-only / no-commit repo | empty diff / stop / `git diff` only | visible through `git status --short` + `git diff HEAD --stat` (fallback `--cached`) |
+| Reviewer shell | none | `git diff/log/show/status` allowed; `>`, `--output`, `; rm`, `&& touch`, `\| tee`, `$(touch)` rejected, no file written |
+| State in subagent calls | injected | not injected (session `parentID` check) |
+| Oversized state (3.7 KB) | first 80 lines injected | one-line notice, no content |
+| Compaction hook text in the summary request | not observed | present (API `session.compact`) |
+| Always-loaded rules (`global/AGENTS.md`) | 4788 chars | 4543 chars: reporting and walkthrough rules merged, none removed |
+
+`evals/offline/check.py`: ALL PASS on this branch (three consecutive runs, ~5 s each); on `main` it fails 4 of 5 checks (subagent injection, reviewer git read, write protection, oversized state). A deny on the `subagent` action inside the reviewer made sessions using it hang; it is not needed because nested subagents are already blocked (`Subagent depth limit reached (1)`).
+
+Gotchas found while testing:
+
+- OpenCode does not block shell redirection by itself: without the explicit `*>*` deny, `git diff HEAD > file` ran and wrote the file. Chained commands are split and each part is checked.
+- `opencode run` reads stdin when it is not a terminal and waits for EOF. Scripts must use `< /dev/null`; earlier intermittent "hangs" in automated runs had this cause.
+- The background service serves cached command templates until `opencode service restart` (confirmed again).
+
+hph adoption by following `/start`: root `AGENTS.md` 3072 chars (40 lines) + `.dev-brain/STATE.md` 1329 chars replace 21.3 KB of `harness/` as working context; the plugin injected a 1504-char state block. `harness/` is left for the owner to delete. Delivered as a patch, not pushed: this session has no write access to `Stcant/hph`.
+
+NOT RUN: any real model (provider endpoints unreachable from the test environment), the TUI, the scenario set in `evals/scenarios/`, the generic `/resume` rule with a model, `cargo` checks in hph.

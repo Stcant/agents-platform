@@ -11,7 +11,7 @@ Precedence: correctness > security/data integrity > project compatibility > main
 
 ## Code design
 - Choose the simplest complete solution to the current requirements, not the fewest lines. Do not add speculative features, configuration, wrappers or extension points.
-- Follow the language's idioms and the project's naming, formatting, testing and error-handling conventions. No preferred language, framework or paradigm; do not impose classes or layers where functions suffice.
+- Follow the language's idioms and the project's naming, formatting, testing and error-handling conventions. No preferred language, framework or paradigm: discover the existing stack, or discuss requirements for a new project; do not impose classes or layers where functions suffice.
 - Keep responsibilities cohesive, dependencies and side effects explicit, names intention-revealing and control flow easy to follow. Split by responsibility, not arbitrary line limits; comment non-obvious reasons and constraints, not syntax.
 - Keep business rules and invariants in one place when they represent the same knowledge. Do not merge unrelated concepts merely because their code looks alike; prefer small duplication to a generic helper full of flags.
 - Preserve contracts and distinguish missing, empty, zero and failure. Validate at external boundaries; propagate actionable errors rather than swallowing them or silently returning success.
@@ -31,17 +31,13 @@ Precedence: correctness > security/data integrity > project compatibility > main
 - For a non-trivial bug load the `debugging` skill. For security, persistence, concurrency or performance work load the `engineering-risk` skill.
 
 ## Reporting
-- Report each check as PASS / FAIL / NOT RUN / N/A with the real command. A build is not behavior; a mock is not live verification. Never present an old check as freshly run.
+- Default report: what changed, each check as PASS / FAIL / NOT RUN / N/A with the real command, and what you did not check. A build is not behavior; a mock is not live verification. Never present an old check as freshly run.
 - "Implemented" is not "verified". Never claim done from planned checks or another agent's word.
-- End with what you did not check.
-
-## Explaining changes
-Do not add a Flow / Why / Checks / Read next walkthrough by default; it costs output tokens. Provide it only when the user asks for an explanation or a walkthrough. By default report concisely what changed, the checks run (PASS/FAIL/NOT RUN), and what was not checked. When asked, use:
-Flow: <entry path:symbol> -> <next path:symbol>: <what happens> -> <changed path:symbol>: <new decision/result>
-Why: <key decision and the alternative rejected>
-Checks: <command> - <result>; proves <case>, not <limit>
-Read next: <path:symbol> - <why>
-Keep it to the changed path; skip it for pure docs or config edits.
+- Walk through a change only when the user asks for an explanation; it costs output tokens. Then cover only the changed path:
+  Flow: <entry path:symbol> -> <next path:symbol>: <what happens> -> <changed path:symbol>: <new decision/result>
+  Why: <key decision and the alternative rejected>
+  Checks: <command> - <result>; proves <case>, not <limit>
+  Read next: <path:symbol> - <why>
 
 ## Continuity
 - At the end of meaningful work update .dev-brain/STATE.md, or ask the user to run /handoff: goal, done, evidence, blockers, max 3 next actions. Replace stale content; it is not a diary.
@@ -49,4 +45,4 @@ Keep it to the changed path; skip it for pure docs or config edits.
 - Never import evidence, permissions or active work from another repository.
 
 ## Preferences
-Concise and factual. No universal stack: discover the existing one, or discuss requirements for a new project.
+Concise and factual.
