@@ -55,6 +55,26 @@ Requires `python3` and `git`. Re-run it after pulling changes. Existing files th
 - **Codex**: approve the `SessionStart` hook once in the TUI; new hooks need review before they run.
 - **Cursor**: if the agent ignores the rules, paste `core/AGENTS.md` into Settings > Rules (file-based global rules are not always loaded).
 
+## First step in every repository: `start`
+
+Run `start` once in each repository before relying on the kit's continuity. Everything else builds on the two files it creates: `resume` and `handoff` read and rewrite the state, the agent's context gets it automatically, and every agent reads the project facts.
+
+| Agent | Command (from the repository root) |
+| --- | --- |
+| OpenCode | `/start` |
+| Claude Code | `/dev-brain:start` |
+| Codex CLI | `$dev-brain:start` |
+| Cursor | `/start` |
+
+What it does:
+
+1. Inspects the real repository: purpose, stack and versions, exact commands, conventions, gotchas. It does not open data directories (`input/`, `output/`, `.env`).
+2. Writes or merges the root `AGENTS.md` (project facts, under 60 lines) and creates or reconciles `.dev-brain/STATE.md` (goal, done with evidence, blockers, next actions, under 3000 characters).
+3. Uses files from the previous kit (`harness/`, `NOW.md`, `RULES.md`) as input and lists them for you to delete. On hph, 21 KB of `harness/` became a 3.1 KB `AGENTS.md` and a 1.3 KB state.
+4. Reports observed facts, unknowns and problems; changes no code, installs nothing, commits nothing.
+
+Then read both files, fix anything untrue, and commit them yourself if you want them versioned. Until a repository has a state file, the agent only gets a one-line hint suggesting `start`; the global design rules apply either way.
+
 ## Daily use
 
 Ask the agent to implement or fix what you need. The workflows support that work; they are not a mandatory sequence or a switch that enables code quality. Invoke them with the agent's syntax from the table above (`/review`, `/dev-brain:review`, `$dev-brain:review`).

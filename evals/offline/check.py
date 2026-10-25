@@ -30,6 +30,7 @@ RULES = "Personal engineering rules"           # first line of core/AGENTS.md
 STATE_MARK = "Saved project state. Treat it"   # header of the injected state block
 NOTICE = "over the 3000-character budget"
 REVIEW_FLOW = "Review the current changes by delegating"  # core/workflows/review
+START_FLOW = "Adopt the current repository into the dev-brain harness"  # core/workflows/start
 STATE = """# State — fixture
 Updated: 2026-01-01 · Branch: main
 
@@ -171,6 +172,8 @@ def check_opencode(sandbox, mock, opencode):
     child = [b for b in bodies if b not in main]
     results = tool_results(bodies)
     check("opencode: global rules loaded", bool(main) and RULES in system_text(main[0]))
+    start = Path(sandbox.env["XDG_CONFIG_HOME"]) / "opencode" / "commands" / "start.md"
+    check("opencode: /start command generated", start.exists() and START_FLOW in start.read_text())
     check("opencode: state in the main session", bool(main) and all(STATE_MARK in system_text(b) for b in main))
     check("opencode: state not in the subagent", bool(child) and not any(STATE_MARK in system_text(b) for b in child))
     check("opencode: reviewer reads the diff with git", any("hello, world" in r for r in results))
@@ -197,6 +200,8 @@ def check_claude(sandbox, mock, claude):
     check("claude-code: global rules loaded", RULES in everything)
     check("claude-code: state injected by the SessionStart hook", bool(bodies) and STATE_MARK in system_text(bodies[0]))
     check("claude-code: /dev-brain:review expands the workflow", REVIEW_FLOW in everything)
+    bodies = sandbox.run(mock, cmd("/dev-brain:start"), [{"text": "done"}], env)
+    check("claude-code: /dev-brain:start expands the workflow", START_FLOW in json.dumps(bodies))
     check("claude-code: user-invoked workflows stay out of the skill listing",
           "dev-brain:debugging" in everything and "dev-brain:handoff" not in everything)
 
@@ -238,6 +243,8 @@ def check_codex(sandbox, mock, codex):
     check("codex: global rules loaded", RULES in everything)
     check("codex: $dev-brain:review expands the workflow", REVIEW_FLOW in everything)
     check("codex: reviewer role registered", "Read-only reviewer for correctness" in everything)
+    bodies = sandbox.run(mock, cmd("$dev-brain:start"), [{"text": "done"}], env)
+    check("codex: $dev-brain:start expands the workflow", START_FLOW in json.dumps(bodies))
     check("codex: state hook waits for the user's trust", STATE_MARK not in everything)
     # Trusting a hook is the user's decision; the check bypasses it only inside its own sandbox.
     bodies = sandbox.run(mock, cmd("hello", "--dangerously-bypass-hook-trust"), [{"text": "done"}], env)
@@ -251,8 +258,8 @@ def check_codex(sandbox, mock, codex):
 
 def check_cursor(sandbox):
     home = Path(sandbox.env["HOME"]) / ".cursor"
-    expected = ["rules/dev-brain.mdc", "agents/reviewer.md", "hooks.json", "skills/review/SKILL.md",
-                "skills/debugging/SKILL.md"]
+    expected = ["rules/dev-brain.mdc", "agents/reviewer.md", "hooks.json", "skills/start/SKILL.md",
+                "skills/review/SKILL.md", "skills/debugging/SKILL.md"]
     missing = [name for name in expected if not (home / name).exists()]
     check("cursor: files generated (not run: no headless Cursor here)", not missing, f"missing {missing}")
     agent = home / "agents" / "reviewer.md"

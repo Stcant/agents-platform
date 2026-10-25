@@ -226,7 +226,7 @@ Reviewer enforcement, tested with write attempts (`>`, `touch`, `; rm`, `--outpu
 - Codex: the role from `~/.codex/agents/reviewer.toml` is registered, but `sandbox_mode = "read-only"` is not applied to the spawned agent: with the parent in `workspace-write` (flag or config), the reviewer created a file. Registering it under `[agents.reviewer] config_file` changed nothing. Documented as instruction-only.
 - Cursor: `readonly: true` per docs; not run.
 
-`evals/offline/check.py`, extended to all agents found: ALL PASS twice (21 checks, ~12 s). Mutation check: removing `disable-model-invocation` from one workflow makes `claude-code: user-invoked workflows stay out of the skill listing` FAIL.
+`evals/offline/check.py`, extended to all agents found: ALL PASS twice (21 checks, ~12 s); 24 after adding `start` expansion checks for each agent. Mutation check: removing `disable-model-invocation` from one workflow makes `claude-code: user-invoked workflows stay out of the skill listing` FAIL.
 
 On hph (`/tmp` copy with the adoption patch): Claude Code `/dev-brain:resume` and Codex `$dev-brain:resume` (hook trust bypassed for the test only) both received the hph state, the resume workflow and the hph `AGENTS.md`.
 
