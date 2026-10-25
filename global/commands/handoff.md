@@ -19,7 +19,7 @@ Steps:
    - in progress / blockers: mark each item implemented, verified or blocked;
    - known pre-existing failures, if newly discovered;
    - next: at most three executable actions, most important first.
-   Replace stale lines instead of appending. Keep it short; the transcript is not the state.
+   Replace stale lines instead of appending. Keep it under 3000 characters: the plugin injects it into every model call and skips larger files. The transcript is not the state.
 4. Update the root `AGENTS.md` only if a stable fact changed: stack, commands, architecture, gotchas.
 5. Report what changed in the two files, and list anything not verified.
 

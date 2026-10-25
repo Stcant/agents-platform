@@ -1,7 +1,7 @@
 # dev-brain — Manuale d'uso
 
 > Manuale utente in italiano. Il codice, i comandi e le skill del kit sono in inglese; questo file è l'unica eccezione documentale.
-> Versione: 2026-10-22. Richiede OpenCode V2.
+> Versione: 2026-10-25. Richiede OpenCode V2 (provato su 2.1.4).
 
 ## Indice
 
@@ -196,7 +196,9 @@ Cosa fa:
 - legge codice, configurazione, README e comandi reali;
 - se `AGENTS.md` esiste, lo integra preservando le istruzioni già presenti;
 - se `.dev-brain/STATE.md` esiste, lo riconcilia invece di sovrascriverlo;
-- riporta fatti osservati, incognite e problemi trovati;
+- se trova file del vecchio kit (`harness/PROJECT_STATE.md`, `harness/PROJECT_MAP.md`, `NOW.md`, `RULES.md`), li usa come fonte: porta i fatti ancora veri in `AGENTS.md` e solo obiettivo, ultima evidenza e prossima azione nello stato. Non li cancella: te li elenca;
+- tiene lo stato sotto i 3000 caratteri, perché il plugin lo inietta in ogni chiamata al modello;
+- riporta fatti osservati, incognite, file legacy da eliminare e problemi trovati;
 - non modifica codice, dipendenze, configurazione o storia git.
 
 Cosa non fa:
@@ -290,7 +292,7 @@ Per un progetto adottato, una sequenza utile per la continuità è:
 
 **Nota:** i risultati vecchi non vengono presentati come appena eseguiti.
 
-Il comando deve evitare installazioni e creazione di ambienti o cache. Per esempio, prima di un `uv run` verifica che `.venv` esista; se manca, il controllo va riportato come `NOT RUN`. È un'istruzione al modello, non un blocco tecnico: l'esistenza della directory non prova che ogni comando sia privo di effetti collaterali.
+Il comando esegue solo controlli veloci e in sola lettura. Riporta come `NOT RUN`, senza eseguirlo, tutto ciò che installa, scarica, compila o crea ambienti e cache: `uv sync`, `pip install`, `npm install`, `uv run` senza `.venv`, `cargo test`/`cargo build`, build complete. Vale per ogni stack, non solo Python. È un'istruzione al modello, non un blocco tecnico.
 
 ---
 
@@ -310,7 +312,7 @@ Il comando deve evitare installazioni e creazione di ambienti o cache. Per esemp
 
 **Non fa:** non committa e non modifica il codice.
 
-**Regola:** massimo 5 voci in “Fatto”, massimo 3 in “Prossime azioni”. Lo stato non è un diario: sostituisci le righe vecchie.
+**Regola:** massimo 5 voci in “Fatto”, massimo 3 in “Prossime azioni”, meno di 3000 caratteri in tutto. Lo stato non è un diario: sostituisci le righe vecchie.
 
 ---
 
@@ -329,7 +331,7 @@ Il comando deve evitare installazioni e creazione di ambienti o cache. Per esemp
 
 **Consiglio:** indica obiettivo, vincoli e criteri di accettazione. Se una decisione cambia comportamento o dati, il piano deve chiedertela prima.
 
-**Nota:** se la sessione resta sull'agente `plan`, riseleziona `build` prima di implementare.
+**Nota:** dopo `/plan` la sessione resta sull'agente `plan` (verificato su OpenCode 2.1.4): se chiedi di implementare, rifiuta. Riseleziona `build` prima di implementare.
 
 ---
 
@@ -382,9 +384,13 @@ Flow: <file:symbol> -> <file:symbol>: <cosa succede e quali dati passano> -> <fi
 
 **Cosa fa:**
 
-- cattura `git status`, `git diff --stat` e `git diff`;
-- delega la review al subagente `reviewer`, che è indipendente e in sola lettura;
+- cattura solo `git status` e `git diff HEAD --stat`: nomi dei file e conteggi, non il contenuto;
+- delega la review al subagente `reviewer`, che è indipendente e in sola lettura, e legge da solo le modifiche con git;
 - riporta i risultati senza ammorbidirli.
+
+Senza scope copre tutte le modifiche non committate: in staging, non in staging e file nuovi non tracciati. Con uno scope (per esempio “ultimo commit”) il reviewer usa `git show` o `git log`.
+
+**Perché così:** prima il diff completo entrava nel contesto principale, il modello lo ricopiava come output nel prompt del subagente e il reviewer lo rileggeva. Il diff si pagava tre volte. Su un diff di 5,9 KB in hph il messaggio di `/review` è passato da 7005 a 1101 caratteri, e la copia in output è sparita.
 
 **Scrive:** no.
 
@@ -397,14 +403,13 @@ Flow: <file:symbol> -> <file:symbol>: <cosa succede e quali dati passano> -> <fi
 - difetti confermati separati da sospetti che richiedono contesto;
 - test che provano davvero il comportamento e fallirebbero sul difetto originale.
 
+**Permessi del reviewer:** niente modifiche ai file. La shell accetta solo `git diff`, `git log`, `git show` e `git status`. Sono bloccati `>`, `--output` e qualsiasi comando concatenato (`;`, `&&`, `|`, `$()`) che contenga altro. Verificato su OpenCode 2.1.4: OpenCode non blocca da solo la redirezione `>`, per questo c'è una regola esplicita.
+
 **Limiti importanti:**
 
-- il reviewer non ha shell: non può eseguire test; li esegue l'agente principale o li lanci tu;
-- il diff acquisito è `git diff`, senza `--cached`: le modifiche già in staging non sono incluse automaticamente nel diff passato al reviewer;
-- `git diff` non include i file nuovi non tracciati: il comando ne passa anche i nomi al reviewer, che li legge direttamente se sono nello scope; i file ignorati da git non entrano automaticamente nella review;
-- se il diff è vuoto, il comando si ferma.
-
-Con soli file non tracciati il diff può essere vuoto: il comando elenca quei file, ma contiene anche l'istruzione di fermarsi sul diff vuoto. Quel caso non è stato verificato; non dare per acquisito che tutti i file siano stati letti, controlla la copertura dichiarata dal reviewer.
+- il reviewer non può eseguire test o build: li esegue l'agente principale o li lanci tu;
+- i file ignorati da git non entrano automaticamente nella review;
+- il comportamento con un modello reale non è stato rimisurato dopo questa modifica: il flusso è verificato con un modello finto (`evals/offline/check.py`), non la qualità dei finding.
 
 ---
 
@@ -477,7 +482,7 @@ Updated: <data> · Branch: <branch>
 
 Regole:
 
-- il plugin inietta le prime 80 righe: tienilo sotto le 80;
+- il plugin lo inietta solo se resta sotto i 3000 caratteri: oltre arriva un avviso al posto del contenuto;
 - “Fatto” massimo 5 voci, “Prossime azioni” massimo 3;
 - ogni voce “Fatto” ha un comando e un esito reale;
 - `PASS` significa eseguito e passato; `NOT RUN` significa non eseguito; non usare “implementato” come se fosse “verificato”;
@@ -491,18 +496,19 @@ Lo stato è contesto, non prova e non autorizzazione: l'agente deve sempre verif
 
 ## 7. Il plugin
 
-Il plugin `plugin/dev-brain/index.ts` fa tre cose.
+Il plugin `plugin/dev-brain/index.ts` fa quattro cose.
 
-1. **Iniezione dello stato.** A ogni chiamata al modello legge `.dev-brain/STATE.md` nella radice del progetto e aggiunge le prime 80 righe al contesto di sistema. L'iniezione è transitoria: non modifica il file e non serve ripetere lo stato nella chat.
-2. **Repository senza stato.** Se la repository è git e il file non esiste, aggiunge una sola riga che suggerisce `/start`. Non crea il file da solo.
-3. **Compaction.** Quando la sessione viene compattata, chiede al riassunto di conservare obiettivo, evidenza verificata, blocchi e prossima azione. Lo stato viene comunque reiniettato alla chiamata successiva.
+1. **Iniezione dello stato.** A ogni chiamata al modello della sessione principale legge `.dev-brain/STATE.md` nella radice del progetto e lo aggiunge al contesto di sistema. L'iniezione è transitoria: non modifica il file e non serve ripetere lo stato nella chat. I subagenti (reviewer, explore, general) non lo ricevono: lavorano sul compito che il chiamante gli passa, e lo stato costerebbe token a ogni loro chiamata.
+2. **Budget.** Se lo stato supera i 3000 caratteri non viene iniettato: al suo posto arriva una riga che dice al modello di leggerlo quando serve e di proporti `/handoff` per compattarlo. Non viene troncato, perché il taglio eliminerebbe proprio “Next”, che sta in fondo.
+3. **Repository senza stato.** Se la repository è git e il file non esiste, aggiunge una sola riga che suggerisce `/start`. Non crea il file da solo.
+4. **Compaction.** Quando la sessione viene compattata, chiede al riassunto di conservare obiettivo, evidenza verificata, blocchi e prossima azione. Lo stato viene comunque reiniettato alla chiamata successiva.
 
 Dettagli:
 
 - il file va nella radice del repository, non in una sottocartella;
-- se è più lungo di 80 righe, la parte eccedente non viene iniettata;
+- oltre i 3000 caratteri viene iniettato solo l'avviso, non il contenuto;
 - il plugin non fa chiamate di rete proprie, ma lo stato entra nella richiesta al provider del modello: non metterci segreti o PHI;
-- i subagenti ricevono lo stesso contesto di progetto;
+- i subagenti ricevono le regole globali e l'`AGENTS.md` del progetto, ma non lo stato;
 - per disattivare l'iniezione in una repository, rimuovi o rinomina `.dev-brain/STATE.md`. Le regole globali restano attive e, se la repo è git, il plugin continuerà a suggerire `/start` finché il file manca.
 
 ---
@@ -725,7 +731,21 @@ cd /tmp/opencode/dev-brain-evals/bugfix
 opencode run --standalone -m <provider/model> "The discount test fails. Fix the code."
 ```
 
-I comandi slash si provano dalla TUI, non con `opencode run`.
+I comandi slash si provano dalla TUI, non con `opencode run`. Negli script chiudi lo stdin (`< /dev/null`): `opencode run` legge lo stdin quando non è un terminale e resta in attesa.
+
+### Controllo offline, a costo zero
+
+```bash
+python3 evals/offline/check.py          # OPENCODE=<binario> se non è nel PATH
+```
+
+Installa il kit in una configurazione temporanea, sostituisce il modello con un finto server locale che registra ogni richiesta e verifica in circa 5 secondi, senza spendere token:
+
+- lo stato arriva alla sessione principale e non ai subagenti;
+- uno stato oltre il budget viene sostituito dall'avviso;
+- il reviewer legge il diff con git ma non può scrivere (`>`, `--output`, `rm` concatenato).
+
+Non valuta la qualità delle risposte del modello: per quella restano gli scenari. Lancialo dopo ogni modifica a plugin, agenti o installer.
 
 `evals/setup.sh` ricrea la cartella di test e crea commit locali per gli scenari che richiedono una storia git. Lo scenario di manutenibilità (`evals/scenarios/maintainability.md`) può essere eseguito su copie nuove senza storia git e senza commit. Non eseguire il setup per il solo aggiornamento della documentazione.
 
@@ -754,7 +774,7 @@ Per ogni repository che aveva una copia:
 4. rimuovi i file del vecchio kit;
 5. verifica che non ci siano istruzioni contraddittorie: le regole globali nuove si applicano comunque.
 
-Se una repository ha una cartella `harness/` con i vecchi `PROJECT_MAP.md` e `PROJECT_STATE.md`, quei file vanno trattati come il vecchio kit: prima raccogli i fatti, poi li rimuovi solo dopo conferma.
+Se una repository ha una cartella `harness/` con i vecchi `PROJECT_MAP.md` e `PROJECT_STATE.md`, quei file vanno trattati come il vecchio kit. `/start` li usa come fonte e te li elenca; li rimuovi tu, dopo aver controllato i due file nuovi. Esempio reale: in hph i 21 KB di `harness/` sono diventati un `AGENTS.md` di 3,1 KB e uno stato di 1,3 KB.
 
 Per recuperare il vecchio contenuto:
 
@@ -771,14 +791,15 @@ git archive 08baebc dev-brain | tar -x -C /tmp
 | --- | --- |
 | I comandi non compaiono nella TUI, o una modifica a un comando non ha effetto | Apri una nuova sessione; se il server era già attivo, `opencode service restart` quando non hai sessioni attive |
 | `opencode run "/resume"` non espande il comando | Limite della CLI: manda il testo letterale. Usa la TUI |
+| `opencode run` in uno script resta fermo | Legge lo stdin quando non è un terminale: aggiungi `< /dev/null` |
 | Il plugin non compare | Controlla `opencode.json`, il percorso assoluto e `opencode plugin list`; riavvia il server |
-| Lo stato non viene iniettato | Verifica `.dev-brain/STATE.md` nella radice, non vuoto, prime 80 righe; apri una nuova sessione |
+| Lo stato non viene iniettato | Verifica `.dev-brain/STATE.md` nella radice, non vuoto, sotto i 3000 caratteri (oltre arriva solo l'avviso); i subagenti non lo ricevono per scelta; apri una nuova sessione |
 | L'installer ha spostato il mio `AGENTS.md` | Cerca `AGENTS.md.bak.<timestamp>` e unisci le tue regole |
 | `opencode.json` non viene aggiornato | Probabilmente contiene commenti JSONC non gestiti: aggiungi a mano `"plugins": ["<percorso-assoluto>/plugin/dev-brain"]` |
-| Edit o shell negati | La tua configurazione OpenCode o il reviewer possono negarli; il reviewer nega shell ed edit per progetto. `--auto` solo su fixture usa e getta |
-| `/review` non trova il file nuovo | Il comando elenca gli untracked non ignorati: controlla scope, template aggiornato e copertura dichiarata dal reviewer. Il caso con soli untracked e diff vuoto non è ancora verificato |
-| Dopo `/plan` l'agente resta `plan` | Riseleziona `build` prima di implementare |
-| Lo stato cresce troppo | Riscrivilo a `/handoff`: massimo 5 voci fatte, 3 prossime azioni, meno di 80 righe |
+| Edit o shell negati | La tua configurazione OpenCode o il reviewer possono negarli; il reviewer nega edit e ogni shell tranne `git diff/log/show/status`. `--auto` solo su fixture usa e getta |
+| `/review` non trova il file nuovo | I file non tracciati compaiono in `git status`; il reviewer li legge se sono nello scope. Controlla che il server usi il template aggiornato e la copertura dichiarata dal reviewer |
+| Dopo `/plan` l'agente resta `plan` | Comportamento atteso di OpenCode: riseleziona `build` prima di implementare |
+| Lo stato cresce troppo | Il plugin smette di iniettarlo e lo segnala: compattalo con `/handoff` (5 voci fatte, 3 prossime azioni, meno di 3000 caratteri) |
 | Due sessioni si sovrascrivono lo stato | Fai `/handoff` da una sola sessione alla volta |
 | Il modello ignora lo stato | Lo stato è contesto, non enforcement: usa `/resume`, verifica con git e chiedi esplicitamente |
 | Una sessione API non esegue un comando | Imposta `agent` e `model` alla creazione della sessione; è un limite del test via API, non della TUI |
@@ -790,16 +811,16 @@ git archive 08baebc dev-brain | tar -x -C /tmp
 
 - Le prove usano fixture piccole e pochi run; i risultati dipendono dal modello e non sono una garanzia per ogni progetto. Il dettaglio delle esecuzioni e dei modelli è in `evals/results.md`.
 - Nella nuova prova di generazione il codice era già leggibile prima della modifica alle regole e lo è rimasto dopo: non è stato dimostrato un guadagno generale nella qualità del codice prodotto.
-- La policy di review ora riconosce una regola di business duplicata come problema di manutenzione, senza proporre di unire politiche indipendenti. La prova era diretta sulla policy: non verifica il nuovo percorso di delega di `/review` né la TUI.
+- La policy di review ora riconosce una regola di business duplicata come problema di manutenzione, senza proporre di unire politiche indipendenti. La prova era diretta sulla policy. Il percorso di delega di `/review` (comando → subagente → git) è verificato via API con un modello finto, non dalla TUI e non con un modello reale.
 - Le regole sono indipendenti dal linguaggio, ma la nuova fixture di manutenibilità è solo Python: la generazione in altri linguaggi non è stata verificata in quella prova.
 - Le regole sono contesto: il modello può non seguirle. I comandi e le skill mirano a ridurre la variabilità, non a eliminarla.
 - `opencode run` non espande i comandi slash; il percorso previsto è la TUI. L'espansione è stata verificata via API, non pilotando la TUI automaticamente.
-- Il reviewer non esegue test. Il comando gli passa i nomi dei file non tracciati non ignorati, da leggere se nello scope; la copertura con soli untracked e diff vuoto resta non verificata.
-- `/resume` dipende dal rispetto delle istruzioni di sola lettura. Il controllo su `.venv` ha funzionato nella copia di test, ma ha fatto saltare anche verifiche innocue: non è una garanzia di isolamento degli effetti collaterali.
-- L'hook di compaction è presente nel plugin, ma non è stato osservato durante una compattazione reale.
+- Il reviewer non esegue test né build. Legge da solo diff e file non tracciati; i file ignorati da git restano fuori.
+- `/resume` dipende dal rispetto delle istruzioni di sola lettura: la regola “niente install, download o compilazione” è un'istruzione al modello, non un blocco tecnico. La versione generica non è ancora stata provata con un modello reale.
+- L'hook di compaction è verificato via API con un modello finto: il testo arriva alla richiesta di riassunto. La qualità del riassunto con un modello reale non è stata misurata.
 - Lo stato può diventare vecchio: `/resume` lo riconcilia, ma non è una verità automatica.
 - Nessun commit automatico: l'agente non crea, emenda o pusha commit senza la tua decisione esplicita.
-- Lo stato viene iniettato a ogni chiamata: tienilo corto.
+- Lo stato viene iniettato a ogni chiamata della sessione principale: oltre i 3000 caratteri arriva solo un avviso.
 - La spiegazione dettagliata è su richiesta: di default le risposte restano brevi.
 - Una sola sessione dovrebbe aggiornare lo stato alla volta.
 - Non c'è uno script di disinstallazione.
@@ -814,10 +835,11 @@ git archive 08baebc dev-brain | tar -x -C /tmp
 - [ ] `opencode plugin list` mostra `dev-brain`
 - [ ] `opencode debug agents` mostra `reviewer`
 - [ ] `opencode api GET /api/command` elenca i sette comandi
+- [ ] `python3 evals/offline/check.py` stampa `ALL PASS`
 - [ ] Le regole di progettazione sono presenti in `~/.config/opencode/AGENTS.md`; non servono comandi speciali per applicarle
 - [ ] `/start` eseguito su almeno una repository
 - [ ] `AGENTS.md` sotto 60 righe, senza path assoluti né dati sensibili
-- [ ] `.dev-brain/STATE.md` sotto 80 righe, con evidenza reale
+- [ ] `.dev-brain/STATE.md` sotto 3000 caratteri, con evidenza reale
 - [ ] I due file di progetto revisionati; eventuale commit separato dal codice solo per tua decisione
 - [ ] Nessun commit, amend o push eseguito dall'agente senza una tua decisione esplicita
 - [ ] `/resume` e `/handoff` provati in una sessione reale
