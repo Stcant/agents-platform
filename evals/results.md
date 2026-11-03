@@ -6,6 +6,14 @@ A log of decisions and the evidence behind them, newest first. Full run details 
 
 Not measured. Real-model evidence so far: one model per scenario, one run, small synthetic Python fixtures; the no-kit baseline already solved every task. The one measured gain is the review policy (below). Next: the same real tasks with and without the plugin, same model; compare tokens per task, fix iterations, review findings, time to resume after a break. Keep what moves the numbers.
 
+## 2026-11-03 — Offline check on GitHub Actions
+
+`.github/workflows/offline-check.yml` runs `python3 evals/offline/check.py` on every pull request, on pushes to `main` and on demand: Ubuntu runner, Node 22, `npm install --global @anthropic-ai/claude-code@2.1.310`, read-only token, no secrets.
+
+Evidence: pull request #5, run `offline-check`: success, 11 checks ALL PASS on a clean runner (about 13 s). Before that, `main` at 0d01d2b (plugin 2.2.0) was cloned into an empty directory and gave ALL PASS locally. The script exits with 1 when a check fails, so the job fails with it; a failing run on CI was not provoked.
+
+Limits: the version is pinned, so a newer Claude Code release is not tested until the pin is bumped; actions are referenced by major tag (`@v4`), not commit SHA; a red check does not block a merge unless branch protection requires it (not set); the check still does not judge model answers.
+
 ## 2026-11-03 — Minimal `start`, review against the goal, weakened-test check (plugin 2.2.0)
 
 Changes: (1) `start` writes `AGENTS.md` as a draft under 40 lines with only commands, tooling, deviations from defaults and gotchas; no purpose line, stack list or architecture overview. Overview lines already in an existing file are listed for deletion, never removed. For names like `.env` or `input/` it prints the permission deny rules for the user to add. (2) `review` passes the state's Goal line to the reviewer as unverified requirements. (3) The reviewer also checks that no test was deleted, skipped, loosened or special-cased to pass. (4) When the repository has a fast check, `start` prints a Stop-hook line (exit code 2 blocks the turn) for the user to add; the plugin enforces nothing there.
