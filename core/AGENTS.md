@@ -41,7 +41,7 @@ Precedence: correctness > security/data integrity > project compatibility > main
 
 ## Continuity
 - At the end of meaningful work update .dev-brain/STATE.md, or suggest the `handoff` workflow: goal, done, evidence, blockers, max 3 next actions, under 3000 characters. Replace stale content; it is not a diary.
-- Update the root AGENTS.md only when stable facts change (stack, commands, architecture, gotchas).
+- Update the root AGENTS.md only when stable facts change (commands, tooling, gotchas).
 - Never import evidence, permissions or active work from another repository.
 
 ## Preferences

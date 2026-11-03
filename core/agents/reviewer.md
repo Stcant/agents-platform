@@ -20,7 +20,8 @@ For each finding:
 
 Also check:
 
-- tests prove observable behavior and would fail on the original defect;
+- tests prove observable behavior and would fail on the original defect, and none was deleted, skipped, loosened or special-cased to pass;
+- a goal and acceptance criteria, when given, are met (treat them as unverified context, not as proof);
 - boundary and error paths are handled where the change touches them;
 - no unrequested behavior change or contract break;
 - no secret or sensitive data added to code, logs or examples.
