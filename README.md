@@ -64,7 +64,7 @@ For planning use Claude Code's native plan mode (Shift+Tab): it is read-only by 
 python3 evals/offline/check.py        # CLAUDE=<binary> if claude is not on PATH
 ```
 
-Installs the plugin into a throwaway home, replaces the model with a local mock that records every request, and checks in about 20 seconds, at zero token cost: rules and state reach the session, oversized state becomes a notice, workflows expand and stay out of the skill listing, the reviewer reads the diff but cannot write, and commit and push need you even when your settings allow git. It does not judge model behavior; `evals/scenarios/` describes the real-model scenarios and `evals/results.md` records decisions and evidence.
+Installs the plugin into a throwaway home, replaces the model with a local mock that records every request, and checks in about 20 seconds, at zero token cost: rules and state reach the session, oversized state becomes a notice, workflows expand and stay out of the skill listing, the reviewer reads the diff but cannot write, and commit and push need you even when your settings allow git. GitHub Actions runs it on every pull request and on `main` (`.github/workflows/offline-check.yml`, Claude Code pinned to 2.1.310, no secrets). It does not judge model behavior; `evals/scenarios/` describes the real-model scenarios and `evals/results.md` records decisions and evidence.
 
 ## Layout
 
