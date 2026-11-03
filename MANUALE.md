@@ -1,6 +1,6 @@
 # dev-brain — Manuale d'uso
 
-> Manuale utente in italiano; il resto del kit è in inglese. Versione 2026-10-25, plugin 2.1.0, provato su Claude Code 2.1.310. Indipendente dal provider del modello.
+> Manuale utente in italiano; il resto del kit è in inglese. Versione 2026-11-03, plugin 2.2.0, provato su Claude Code 2.1.310. Indipendente dal provider del modello.
 
 ## Avvio rapido
 
@@ -56,7 +56,7 @@ Crea o aggiorna due file:
 
 ```text
 <repo>/
-├── AGENTS.md            fatti del progetto, meno di 60 righe (Claude Code lo legge da solo)
+├── AGENTS.md            comandi, strumenti e trappole del progetto, meno di 40 righe (Claude Code lo legge da solo)
 └── .dev-brain/
     └── STATE.md         obiettivo, fatto, blocchi, prossime azioni, meno di 3000 caratteri
 ```
@@ -67,11 +67,15 @@ Cosa fa:
 - integra un `AGENTS.md` esistente preservandone le istruzioni;
 - riconcilia uno stato esistente invece di sovrascriverlo;
 - usa i file del vecchio kit (`harness/`, `NOW.md`, `RULES.md`) come fonte e te li elenca da eliminare;
+- scrive l'`AGENTS.md` come bozza: solo comandi, strumenti e trappole, senza scopo, elenco dello stack o panoramica dell'architettura (gli studi li trovano costosi e inutili);
+- elenca le righe di un `AGENTS.md` esistente che ripetono ciò che il codice già mostra, come candidate da eliminare (non le cancella);
+- se vede nomi come `.env` o `input/`, stampa le regole `deny` da aggiungere tu alle impostazioni di permesso, senza aprire quei percorsi e senza modificare impostazioni;
+- se trova un controllo veloce (typecheck, lint, un test rapido), stampa la riga di Stop hook da aggiungere tu alle impostazioni del progetto, perché un turno non possa finire finché il controllo non passa;
 - riporta fatti, incognite e problemi.
 
 Non tocca codice, dipendenze o git, e non installa nulla. Non apre directory con dati personali, clinici o segreti (`input/`, `output/`, `.env`).
 
-Dopo: rileggi i due file, correggi ciò che non è vero, e committali tu se vuoi versionarli. Esempio reale: in hph i 21 KB di `harness/` sono diventati 4,4 KB (PR #10 su hph).
+Dopo: rileggi i due file, elimina le righe che il codice mostra già, correggi ciò che non è vero, e committali tu se vuoi versionarli. Esempio reale: in hph i 21 KB di `harness/` sono diventati 4,4 KB (PR #10 su hph).
 
 ---
 
@@ -92,7 +96,7 @@ Si invocano con `/dev-brain:<nome>`. Il testo dopo il nome è l'argomento. Non c
 
 **`resume`** esegue un controllo registrato solo se è veloce e in sola lettura. Riporta come `NOT RUN` ciò che installa, scarica o compila (`npm install`, `uv sync`, `cargo test`…).
 
-**`review`** passa al reviewer solo nomi e conteggi dei file: il diff lo legge lui con git. Prima il diff si pagava tre volte. Su un diff di 5,9 KB il messaggio è sceso da 7005 a 1101 caratteri.
+**`review`** passa al reviewer solo nomi e conteggi dei file: il diff lo legge lui con git. Prima il diff si pagava tre volte. Su un diff di 5,9 KB il messaggio è sceso da 7005 a 1101 caratteri. Se lo stato contiene un obiettivo con criteri di accettazione, glieli passa come requisiti da verificare; il reviewer controlla anche che nessun test sia stato cancellato, saltato o indebolito per far passare la modifica.
 
 ---
 
@@ -194,7 +198,7 @@ Non valuta la qualità delle risposte.
 
 | Sintomo | Soluzione |
 | --- | --- |
-| `/review` apre la review integrata | Usa `/dev-brain:review`: i comandi integrati hanno la precedenza |
+| `/review` apre la review integrata (alias di `/code-review`, che cerca bug e può applicare correzioni) | Usa `/dev-brain:review`: i comandi integrati hanno la precedenza; la nostra è in sola lettura imposta e riporta anche problemi di manutenibilità |
 | Lo stato non arriva | File nella radice, non vuoto, sotto 3000 caratteri; `python3` disponibile; nuova sessione |
 | Dopo un aggiornamento vedo la versione vecchia | `claude plugin marketplace update dev-brain` e nuova sessione |
 | Il reviewer chiede di eseguire un comando che scrive | Rispondi no |

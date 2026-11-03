@@ -6,6 +6,19 @@ A log of decisions and the evidence behind them, newest first. Full run details 
 
 Not measured. Real-model evidence so far: one model per scenario, one run, small synthetic Python fixtures; the no-kit baseline already solved every task. The one measured gain is the review policy (below). Next: the same real tasks with and without the plugin, same model; compare tokens per task, fix iterations, review findings, time to resume after a break. Keep what moves the numbers.
 
+## 2026-11-03 — Minimal `start`, review against the goal, weakened-test check (plugin 2.2.0)
+
+Changes: (1) `start` writes `AGENTS.md` as a draft under 40 lines with only commands, tooling, deviations from defaults and gotchas; no purpose line, stack list or architecture overview. Overview lines already in an existing file are listed for deletion, never removed. For names like `.env` or `input/` it prints the permission deny rules for the user to add. (2) `review` passes the state's Goal line to the reviewer as unverified requirements. (3) The reviewer also checks that no test was deleted, skipped, loosened or special-cased to pass. (4) When the repository has a fast check, `start` prints a Stop-hook line (exit code 2 blocks the turn) for the user to add; the plugin enforces nothing there.
+
+Evidence is external; nothing is measured locally yet:
+- arXiv 2602.11988 (four agents, including Claude Code with Sonnet 4.5): LLM-generated context files changed success by -0.5 to -2 points and raised cost about 20-23%; overviews did not reduce the steps to the first relevant file; tooling instructions were followed (a mentioned tool was used 1.6 times per task against under 0.01).
+- arXiv 2601.20404 (Codex, 124 PRs) found shorter runs with an `AGENTS.md` (median -28.6% time, -16.6% output tokens, total tokens about unchanged, correctness not measured). The effect is contested, so it needs a measurement here.
+- Anthropic's best-practices guide: review against a spec, keep the context file to what the code does not show, put no-exception rules in hooks or deny rules. arXiv 2606.26300 lists test tampering and overfitting to visible tests among documented agent failures.
+
+Local: `python3 evals/offline/check.py` ALL PASS (11 checks, Claude Code 2.1.310, mock model).
+
+Limits: no real-model run of the new `start`; hph's 41-line `AGENTS.md` predates it and is not re-trimmed; deny rules are suggestions, not enforced by the plugin, and do not stop a script that opens the file; the studies measure task success and cost, not maintainability; the goal line can be stale, so the reviewer treats it as unverified. The built-in `/code-review` (alias `/review`; it looks for correctness bugs and can apply fixes) is documented; a side-by-side run against `/dev-brain:review` on one diff is NOT RUN.
+
 ## 2026-10-25 — Commit rule enforced by a hook (plugin 2.1.0)
 
 The no-commit rule was instruction only; the user asked for enforcement. `core/bin/dev-brain-guard` is a `PreToolUse` hook on Bash that answers "ask" for git commands changing history, branches or the remote (commit/amend, push, merge, rebase, cherry-pick, revert, am, checkout, switch, history-moving reset, clean -f, branch -d/-m/-f, stash drop/pop/clear, tag -d/-f), parsed per chained segment and past global options (`git -C dir commit`).

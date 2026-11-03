@@ -25,12 +25,12 @@ Requires `python3` and `git`. Update with `claude plugin marketplace update dev-
 
 Run it once in each repository, from its root. Everything else builds on the two files it creates: `resume` and `handoff` read and rewrite the state, every session gets it automatically, and Claude Code reads the project facts natively.
 
-1. Inspects the real repository: purpose, stack and versions, exact commands, conventions, gotchas. It does not open data directories (`input/`, `output/`, `.env`).
-2. Writes or merges the root `AGENTS.md` (project facts, under 60 lines) and creates or reconciles `.dev-brain/STATE.md` (goal, done with evidence, blockers, next actions, under 3000 characters).
+1. Inspects the real repository: stack, commands, conventions, traps. It does not open data directories (`input/`, `output/`, `.env`).
+2. Writes or merges the root `AGENTS.md` as a draft, under 40 lines and only what the code does not show: exact commands, project tooling, decisions that differ from defaults, gotchas. No purpose line, stack list or architecture tour: studies find that such overviews add cost without helping the agent. It also creates or reconciles `.dev-brain/STATE.md` (goal, done with evidence, blockers, next actions, under 3000 characters).
 3. Uses files from the previous kit (`harness/`, `NOW.md`, `RULES.md`) as input and lists them for you to delete. On hph, 21 KB of `harness/` became a 3.1 KB `AGENTS.md` and a 1.3 KB state.
-4. Reports observed facts, unknowns and problems; changes no code, installs nothing, commits nothing.
+4. Reports observed facts, unknowns, problems and the `AGENTS.md` lines it suggests deleting (it never deletes them). If it sees names like `.env` or `input/`, it also prints the permission `deny` rules you can add yourself; if the repository has a fast check, it prints the Stop-hook line that makes a passing check mandatory before a turn can end. It edits no settings file. Changes no code, installs nothing, commits nothing.
 
-Then read both files, fix anything untrue, and commit them yourself if you want them versioned. Until a repository has a state file, the session only gets a one-line hint suggesting `start`; the global rules apply either way.
+Then read both files, delete the lines the code already shows, fix anything untrue, and commit them yourself if you want them versioned. Until a repository has a state file, the session only gets a one-line hint suggesting `start`; the global rules apply either way.
 
 ## Daily use
 
