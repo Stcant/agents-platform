@@ -2,10 +2,14 @@ name: offline-check
 
 # Runs evals/offline/check.py: the real Claude Code binary against a local mock
 # model. No secrets, no tokens, no network beyond the package registry.
+# Pull requests test the pinned version. Pushes to main, the weekly schedule and
+# manual runs also test the newest release, to see a Claude Code change early.
 on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    - cron: "23 5 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -16,7 +20,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check:
+  pinned:
+    name: Claude Code 2.1.325 (pinned)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -26,9 +31,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # Pinned to the version the check was written and tested against.
-      # Bump it deliberately, together with the "provato su" line in MANUALE.md.
-      - name: Install Claude Code 2.1.310
-        run: npm install --global @anthropic-ai/claude-code@2.1.310
+      # The version the check was last tested against. Bump it deliberately,
+      # together with the "provato su" line in MANUALE.md.
+      - name: Install Claude Code 2.1.325
+        run: npm install --global @anthropic-ai/claude-code@2.1.325
+      - name: Offline check
+        run: python3 evals/offline/check.py
+
+  latest:
+    name: Claude Code latest (early warning)
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install the newest Claude Code
+        run: npm install --global @anthropic-ai/claude-code@latest
+      - name: Show the version under test
+        run: claude --version
       - name: Offline check
         run: python3 evals/offline/check.py

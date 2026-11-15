@@ -22,7 +22,7 @@ Steps:
 
 ```markdown
 # State — <project>
-Updated: <date> · Branch: <branch>
+Updated: <date>
 
 ## Goal
 <one line> — acceptance: <observable criteria>
