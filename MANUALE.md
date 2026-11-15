@@ -1,6 +1,6 @@
 # dev-brain — Manuale d'uso
 
-> Manuale utente in italiano; il resto del kit è in inglese. Versione 2026-11-03, plugin 2.2.0, provato su Claude Code 2.1.310. Indipendente dal provider del modello.
+> Manuale utente in italiano; il resto del kit è in inglese. Versione 2026-11-15, plugin 2.2.1, provato su Claude Code 2.1.325. Indipendente dal provider del modello.
 
 ## Avvio rapido
 
@@ -141,7 +141,7 @@ Formato di `.dev-brain/STATE.md`:
 
 ```markdown
 # State — <progetto>
-Updated: <data> · Branch: <branch>
+Updated: <data>
 
 ## Goal
 <una riga> — acceptance: <criteri osservabili>
@@ -161,7 +161,7 @@ Updated: <data> · Branch: <branch>
 
 Arriva in ogni sessione insieme alle regole: all'avvio, al resume, dopo `/clear`, dopo la compattazione. Sopra i 3000 caratteri arriva solo un avviso che chiede di compattarlo con `handoff`. Non viene troncato, perché il taglio eliminerebbe proprio “Next”. In una repo senza stato arriva una riga che suggerisce `start`.
 
-Regole: evidenza reale con comando, righe vecchie sostituite (non è un diario), nessun dato sensibile (viene inviato al provider), una sola sessione alla volta fa `handoff`. Per disattivarlo in una repo, rinomina il file.
+Regole: evidenza reale con comando, righe vecchie sostituite (non è un diario), né branch, né commit corrente, né “non committato” (git li ha, e lo stato di solito viene committato insieme al lavoro: quelle righe diventano false), nessun dato sensibile (viene inviato al provider), una sola sessione alla volta fa `handoff`. Per disattivarlo in una repo, rinomina il file.
 
 ---
 
@@ -188,7 +188,7 @@ Il **controllo offline** installa il plugin in una home temporanea e sostituisce
 - reviewer che legge il diff ma non scrive;
 - commit e push che chiedono conferma anche con git permesso nelle impostazioni.
 
-Non valuta la qualità delle risposte.
+Non valuta la qualità delle risposte. Su GitHub Actions gira a ogni pull request sulla versione fissata di Claude Code; a ogni push su `main`, ogni lunedì e su richiesta gira anche sull'ultima versione, per accorgersi presto di un cambiamento.
 
 `core/AGENTS.md` e le skill restano in formati standard: supportare un altro agente in futuro richiede un adattatore, non una riscrittura.
 

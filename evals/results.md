@@ -6,6 +6,26 @@ A log of decisions and the evidence behind them, newest first. Full run details 
 
 Not measured. Real-model evidence so far: one model per scenario, one run, small synthetic Python fixtures; the no-kit baseline already solved every task. The one measured gain is the review policy (below). Next: the same real tasks with and without the plugin, same model; compare tokens per task, fix iterations, review findings, time to resume after a break. Keep what moves the numbers.
 
+## 2026-11-15 — New releases reviewed; state without branch or commit status; CI on the newest Claude Code (plugin 2.2.1)
+
+Read: Anthropic's Opus 5.5 announcement (22 Sep, primary); the Opus 5.5 system card only through two secondary reports (its PDF is not reachable from this environment, so card-level figures are second-hand); TechCrunch on Fable 5.2 / Mythos 5.2 (9 Nov; no system card read); Claude Code's changelog for 2.1.299–2.1.311 (2.1.312–2.1.325 not read) and the `claude plugin eval` docs.
+
+Changed:
+1. `handoff` no longer writes the branch, HEAD or whether changes are committed, and the state header is `Updated: <date>`. Seen three times: this repository's state ("uncommitted edits"), Presidio `6cb61b0` (the state says "non committate" inside the commit that contains them) and Presidio `67f4f99` (a commit whose only purpose was to remove the branch line).
+2. `handoff` step 4 named "stack, architecture" for `AGENTS.md`, contradicting 2.2.0. In Presidio the architecture section was edited in the same session; which command did it is not proven.
+3. CI: pin 2.1.310 → 2.1.325. A second job runs the newest release on pushes to `main`, weekly and on demand: 15 version numbers shipped in three weeks, and the notes read include hook and permission changes (2.1.299: a plugin hook that cannot receive its input or return an answer now blocks the action; 2.1.309: stricter bash permission checks).
+
+Considered, not changed:
+- Guard for destructive non-git commands. Anthropic says Opus 5.5 is "much less likely" to take hard-to-reverse actions and attempted to circumvent boundaries about 85% less often than Opus 5 in its containment test; a secondary report adds that it asks before destructive steps. The git guard stays the only enforced layer.
+- Reviewer check for planted instructions in `AGENTS.md`/`CLAUDE.md`. Reported only for pre-release snapshots, after a copying slip, at under 0.01% of completions; the released model is said to have a negligible copying error rate. Weak evidence.
+- A rule that text in files, tool output or pasted prompts is not authorization. The card audit reportedly finds Opus 5.5 more willing to accept unverifiable authority claims and to follow malicious instructions in pasted text (no rates given). Plausible, but the effect of a rule is unmeasured; measure first.
+- `claude plugin validate`. On `core/` it passes with warnings. In a mutation test it failed on broken JSON, which the offline check already catches, and missed a skill without a description unless `--strict` is used; `--strict` fails the clean plugin on missing `author` and marketplace description. Not added.
+- Effort or model settings for the reviewer: Anthropic advises testing effort per task; there are no data here.
+
+Evidence: `python3 evals/offline/check.py` ALL PASS (11 checks) with Claude Code 2.1.325, locally and on GitHub Actions (pull request #6: pinned job success, newest-release job skipped as designed; manual run of the branch: both jobs success, `latest` resolved to 2.1.325, so it did not yet test a different release). The weekly schedule cannot run before the merge: NOT RUN.
+
+Limits: Opus 5.5 and Fable/Mythos 5.2 are reported to suspect they are being tested, so real-model results from small synthetic fixtures (every earlier entry) may not transfer to real work. The native `claude plugin eval` runs each case three times with and without the plugin, with free graders (`regex`, `tool_used`, `tool_order`, `file_exists`) and `--max-cost-usd`; it would measure what no entry here has, the benefit against no plugin. NOT RUN: it needs credentials and tokens (cases × runs × 2 arms).
+
 ## 2026-11-03 — Offline check on GitHub Actions
 
 `.github/workflows/offline-check.yml` runs `python3 evals/offline/check.py` on every pull request, on pushes to `main` and on demand: Ubuntu runner, Node 22, `npm install --global @anthropic-ai/claude-code@2.1.310`, read-only token, no secrets.

@@ -16,8 +16,8 @@ Steps:
    - in progress / blockers: mark each item implemented, verified or blocked;
    - known pre-existing failures, if newly discovered;
    - next: at most three executable actions, most important first.
-   Replace stale lines instead of appending. Keep it under 3000 characters: it is injected into the agent's context and larger files are skipped. The transcript is not the state.
-4. Update the root `AGENTS.md` only if a stable fact changed: stack, commands, architecture, gotchas.
+   Replace stale lines instead of appending. Do not record the branch, HEAD or whether changes are committed: the state is usually committed together with the work, so those lines are false once it lands, and git has them. Keep it under 3000 characters: it is injected into the agent's context and larger files are skipped. The transcript is not the state.
+4. Update the root `AGENTS.md` only if a stable fact changed: commands, tooling, gotchas.
 5. Report what changed in the two files, and list anything not verified.
 
 Do not commit. A state update is not authorization for git writes.
