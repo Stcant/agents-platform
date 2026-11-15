@@ -5,7 +5,7 @@ Updated: 2026-11-15
 Claude Code plugin for readable, maintainable code at the lowest context cost — acceptance: installs from GitHub with two commands, every claim backed by `evals/` evidence, measured benefit on real tasks.
 
 ## Done (latest first, max 5)
-- Plugin 2.2.1 in a PR, not merged: `handoff` stops writing branch/HEAD/commit status (state header is `Updated: <date>`), step 4 names commands, tooling, gotchas; CI pin 2.1.325 plus a newest-release job — evidence: `python3 evals/offline/check.py` ALL PASS on 2.1.325 (local)
+- Plugin 2.2.1 in a PR, not merged: `handoff` stops writing branch/HEAD/commit status (state header is `Updated: <date>`), step 4 names commands, tooling, gotchas; CI pin 2.1.325 plus a newest-release job — evidence: `python3 evals/offline/check.py` ALL PASS on 2.1.325 (local; PR #6 CI success, manual run of both jobs success; weekly schedule NOT RUN until merged)
 - Offline check on GitHub Actions for every PR — evidence: PR #5 run `offline-check` success, ALL PASS on a clean runner
 - Plugin 2.2.0 merged (PR #4): minimal `start`, review passes the Goal line, reviewer checks weakened tests — evidence: `python3 evals/offline/check.py` ALL PASS on a clean clone of main (0d01d2b)
 - No commit without the user, enforced: `PreToolUse` git guard (2.1.0) — evidence: `python3 evals/offline/check.py` ALL PASS; mutation without the hook FAILs

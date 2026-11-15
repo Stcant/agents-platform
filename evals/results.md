@@ -22,7 +22,7 @@ Considered, not changed:
 - `claude plugin validate`. On `core/` it passes with warnings. In a mutation test it failed on broken JSON, which the offline check already catches, and missed a skill without a description unless `--strict` is used; `--strict` fails the clean plugin on missing `author` and marketplace description. Not added.
 - Effort or model settings for the reviewer: Anthropic advises testing effort per task; there are no data here.
 
-Evidence: `python3 evals/offline/check.py` ALL PASS (11 checks) with Claude Code 2.1.325, locally.
+Evidence: `python3 evals/offline/check.py` ALL PASS (11 checks) with Claude Code 2.1.325, locally and on GitHub Actions (pull request #6: pinned job success, newest-release job skipped as designed; manual run of the branch: both jobs success, `latest` resolved to 2.1.325, so it did not yet test a different release). The weekly schedule cannot run before the merge: NOT RUN.
 
 Limits: Opus 5.5 and Fable/Mythos 5.2 are reported to suspect they are being tested, so real-model results from small synthetic fixtures (every earlier entry) may not transfer to real work. The native `claude plugin eval` runs each case three times with and without the plugin, with free graders (`regex`, `tool_used`, `tool_order`, `file_exists`) and `--max-cost-usd`; it would measure what no entry here has, the benefit against no plugin. NOT RUN: it needs credentials and tokens (cases × runs × 2 arms).
 
