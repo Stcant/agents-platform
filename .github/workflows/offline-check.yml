@@ -1,9 +1,9 @@
 name: offline-check
 
-# Runs evals/offline/check.py: the real Claude Code binary against a local mock
-# model. No secrets, no tokens, no network beyond the package registry.
-# Pull requests test the pinned version. Pushes to main, the weekly schedule and
-# manual runs also test the newest release, to see a Claude Code change early.
+# Runs evals/offline/check.py: the real Claude Code, Codex CLI and Copilot CLI
+# binaries against a local mock model. No secrets, no tokens, no network beyond the
+# package registry. Pull requests test the pinned versions. Pushes to main, the
+# weekly schedule and manual runs also test the newest releases, to see a change early.
 on:
   pull_request:
   push:
@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   pinned:
-    name: Claude Code 2.1.325 (pinned)
+    name: Pinned versions (Claude Code 2.1.325, Codex 0.171.0, Copilot CLI 1.0.114)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -31,15 +31,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # The version the check was last tested against. Bump it deliberately,
+      # The versions the check was last tested against. Bump them deliberately,
       # together with the "provato su" line in MANUALE.md.
-      - name: Install Claude Code 2.1.325
-        run: npm install --global @anthropic-ai/claude-code@2.1.325
+      - name: Install the agents
+        run: npm install --global @anthropic-ai/claude-code@2.1.325 @openai/codex@0.171.0 @github/copilot@1.0.114
+      # CODEX and COPILOT make those checks required: a missing binary fails the job.
       - name: Offline check
+        env:
+          CODEX: codex
+          COPILOT: copilot
         run: python3 evals/offline/check.py
 
   latest:
-    name: Claude Code latest (early warning)
+    name: Latest versions (early warning)
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -50,9 +54,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install the newest Claude Code
-        run: npm install --global @anthropic-ai/claude-code@latest
-      - name: Show the version under test
-        run: claude --version
+      - name: Install the newest agents
+        run: npm install --global @anthropic-ai/claude-code@latest @openai/codex@latest @github/copilot@latest
+      - name: Show the versions under test
+        run: |
+          claude --version
+          codex --version
+          copilot --version
       - name: Offline check
+        env:
+          CODEX: codex
+          COPILOT: copilot
         run: python3 evals/offline/check.py

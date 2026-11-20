@@ -1,6 +1,6 @@
 # dev-brain — Manuale d'uso
 
-> Manuale utente in italiano; il resto del kit è in inglese. Versione 2026-11-15, plugin 2.2.1, provato su Claude Code 2.1.325. Indipendente dal provider del modello.
+> Manuale utente in italiano; il resto del kit è in inglese. Versione 2026-11-20, plugin 2.3.0, provato su Claude Code 2.1.325, Codex CLI 0.171.0 e Copilot CLI 1.0.114. Indipendente dal provider del modello.
 
 ## Avvio rapido
 
@@ -21,7 +21,7 @@ Da lì: `resume` a inizio sessione → lavoro → `review` → `handoff` a fine 
 
 ## 1. Cos'è
 
-Un plugin per Claude Code. Fa tre cose:
+Un plugin per Claude Code, installabile anche in Codex CLI e GitHub Copilot (sezione 12). Fa tre cose:
 
 1. **Regole globali** in ogni sessione: soluzione più semplice e completa, idiomi del progetto, una sola fonte per ogni regola di business, errori mai nascosti, niente commit senza la tua decisione, controlli riportati come PASS / FAIL / NOT RUN.
 2. **Continuità**: lo stato del progetto (`.dev-brain/STATE.md`) arriva in ogni sessione, anche dopo `/clear` e dopo la compattazione.
@@ -33,7 +33,7 @@ Non decide quando committare, non sostituisce test né la tua revisione, e non g
 
 ## 2. Installazione
 
-Prerequisiti: Claude Code, `python3`, `git`.
+Prerequisiti: Claude Code (o Codex / Copilot, sezione 12), `python3`, `git`.
 
 ```bash
 claude plugin marketplace add Stcant/agents-platform
@@ -188,7 +188,9 @@ Il **controllo offline** installa il plugin in una home temporanea e sostituisce
 - reviewer che legge il diff ma non scrive;
 - commit e push che chiedono conferma anche con git permesso nelle impostazioni.
 
-Non valuta la qualità delle risposte. Su GitHub Actions gira a ogni pull request sulla versione fissata di Claude Code; a ogni push su `main`, ogni lunedì e su richiesta gira anche sull'ultima versione, per accorgersi presto di un cambiamento.
+Se trova `codex` o `copilot` nel PATH (o nelle variabili `CODEX` e `COPILOT`, che in quel caso li rendono obbligatori) ripete su ciascuno i controlli che hanno senso: regole e stato, workflow fuori dall'elenco, commit e push fermati, reviewer senza shell su Copilot.
+
+Non valuta la qualità delle risposte. Su GitHub Actions gira a ogni pull request sulle versioni fissate (Claude Code 2.1.325, Codex 0.171.0, Copilot CLI 1.0.114); a ogni push su `main`, ogni lunedì e su richiesta gira anche sulle ultime versioni, per accorgersi presto di un cambiamento.
 
 `core/AGENTS.md` e le skill restano in formati standard: supportare un altro agente in futuro richiede un adattatore, non una riscrittura.
 
@@ -213,3 +215,26 @@ Non valuta la qualità delle risposte. Su GitHub Actions gira a ogni pull reques
 - Il controllo offline verifica cosa il kit invia e permette, non le risposte.
 - Il reviewer chiede approvazione per le scritture: se approvi, scrive.
 - Le regole costano circa 1200 token per sessione; se rendano non è ancora dimostrato.
+- Codex e Copilot sono provati solo con il modello finto e con i loro programmi a riga di comando; VS Code non è stato eseguito (sezione 12).
+
+---
+
+## 12. Codex e GitHub Copilot
+
+Lo stesso marketplace e lo stesso plugin si installano senza modifiche. Provato con i programmi reali contro il modello finto, non con un modello vero.
+
+| | Codex CLI | Copilot CLI |
+| --- | --- | --- |
+| Installazione | `codex plugin marketplace add Stcant/agents-platform`, poi `codex plugin add dev-brain@dev-brain` | `copilot plugin marketplace add Stcant/agents-platform`, poi `copilot plugin install dev-brain@dev-brain` |
+| Regole e stato | Sì, ma solo dopo che approvi gli hook del plugin con `/hooks`: finché non lo fai regole, stato e guardia git sono spenti senza alcun avviso | Sì |
+| Workflow | `$dev-brain:start`; non costano contesto (file `agents/openai.yaml` in ogni workflow) | Elencati da `copilot skill list`, non costano contesto; la chiamata in sessione interattiva non è stata provata |
+| Commit, push, cambio di branch | **Rifiutati**: gli hook di Codex non sanno chiedere conferma, quindi il comando lo esegui tu | Chiede conferma (la richiesta interattiva non è stata provata; in `-p`, che non può chiedere, rifiuta) |
+| Reviewer | Non viene caricato: `review` lo dice e si ferma | Caricato, in sola lettura ma senza shell: non può lanciare git e legge i file elencati |
+
+**VS Code (Copilot in modalità agente): NON PROVATO**, non si può eseguire qui. La documentazione dice che i plugin agente leggono il formato Claude: aggiungi `Stcant/agents-platform` dall'editor delle personalizzazioni (Configure Marketplaces) o con l'impostazione `chat.plugins.marketplaces`, poi installa `dev-brain`. Come VS Code carichi hook e agenti di un plugin non è documentato: verifica che le regole arrivino; se non arrivano, incolla `core/AGENTS.md` nelle istruzioni di Copilot.
+
+Cosa è stato aggiunto per far funzionare tutto (solo ciò che i programmi reali hanno mostrato rotto):
+
+- 6 file `agents/openai.yaml` (Codex ignora `disable-model-invocation`: senza, i 6 workflow comparivano nell'elenco, circa 1100 caratteri a sessione);
+- la guardia git risponde "deny" invece di "ask" quando gira su Codex (Codex segna l'hook come fallito e il comando parte lo stesso);
+- l'hook di contesto aggiunge la chiave `additionalContext` che Copilot CLI legge al posto di `hookSpecificOutput`, solo quando è Copilot a eseguirlo (Codex la rifiuta).

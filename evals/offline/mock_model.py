@@ -1,4 +1,7 @@
-"""Local Anthropic Messages endpoint that records requests and replays scripted replies.
+"""Local model endpoint that records requests and replays scripted replies.
+
+Speaks two wire formats: Anthropic Messages (Claude Code, and Copilot CLI configured
+with its Anthropic provider) and OpenAI Responses (Codex CLI, `/responses`).
 
 Requests that offer tools are agent-loop calls: each one pops the first scripted step
 whose optional "when" / "unless" text matches the request, either
@@ -26,12 +29,13 @@ class MockModel:
 
             def do_POST(self):
                 body = json.loads(self.rfile.read(int(self.headers.get("content-length", 0))) or b"{}")
-                if self.path.split("?")[0].endswith("/count_tokens"):
+                path = self.path.split("?")[0]
+                if path.endswith("/count_tokens"):
                     return self._json({"input_tokens": 1})
                 with mock.lock:
                     mock.requests.append(body)
                     step = mock.next_step(body)
-                self._reply(body, step)
+                (self._responses if path.endswith("/responses") else self._reply)(body, step)
 
             def _json(self, payload):
                 data = json.dumps(payload).encode()
@@ -40,6 +44,36 @@ class MockModel:
                 self.send_header("content-length", str(len(data)))
                 self.end_headers()
                 self.wfile.write(data)
+
+            def _sse(self, events):
+                self.send_response(200)
+                self.send_header("content-type", "text/event-stream")
+                self.send_header("connection", "close")
+                self.end_headers()
+                for name, data in events:
+                    self.wfile.write(f"event: {name}\ndata: {json.dumps(data)}\n\n".encode())
+                self.wfile.flush()
+                self.close_connection = True
+
+            def _responses(self, body, step):
+                n = len(mock.requests)
+                if "tool" in step:
+                    item = {"type": "function_call", "id": f"fc_{n}", "call_id": f"call_{n}", "name": step["tool"],
+                            "arguments": json.dumps(step["args"]), "status": "completed"}
+                else:
+                    item = {"type": "message", "id": f"msg_{n}", "role": "assistant", "status": "completed",
+                            "content": [{"type": "output_text", "text": step["text"], "annotations": []}]}
+                usage = {"input_tokens": 1, "input_tokens_details": {"cached_tokens": 0}, "output_tokens": 1,
+                         "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 2}
+                response = {"id": f"resp_{n}", "object": "response", "status": "in_progress", "model": "mock", "output": []}
+                self._sse([
+                    ("response.created", {"type": "response.created", "response": response}),
+                    ("response.output_item.added", {"type": "response.output_item.added", "output_index": 0,
+                                                    "item": dict(item, status="in_progress")}),
+                    ("response.output_item.done", {"type": "response.output_item.done", "output_index": 0, "item": item}),
+                    ("response.completed", {"type": "response.completed",
+                                            "response": dict(response, status="completed", output=[item], usage=usage)}),
+                ])
 
             def _reply(self, body, step):
                 if "tool" in step:
@@ -63,14 +97,7 @@ class MockModel:
                                        "usage": {"output_tokens": 1}}),
                     ("message_stop", {"type": "message_stop"}),
                 ]
-                self.send_response(200)
-                self.send_header("content-type", "text/event-stream")
-                self.send_header("connection", "close")
-                self.end_headers()
-                for name, data in events:
-                    self.wfile.write(f"event: {name}\ndata: {json.dumps(data)}\n\n".encode())
-                self.wfile.flush()
-                self.close_connection = True
+                self._sse(events)
 
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         threading.Thread(target=self.server.serve_forever, daemon=True).start()

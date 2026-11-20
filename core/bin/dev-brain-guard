@@ -4,12 +4,19 @@
 The global rules say no commit, push, branch change or destructive git command
 without the user's explicit decision. This hook enforces it: for such a command it
 answers "ask", so Claude Code requests confirmation whatever the model decided or
-the permission settings allow. Everything else passes untouched (no output).
+the permission settings allow (Copilot CLI asks too). Codex cannot ask: an "ask" fails
+the hook and the command still runs, so there the answer is "deny" and the user runs
+the command. Everything else passes untouched (no output).
 """
 import json
+import os
 import re
 import shlex
 import sys
+
+# Codex sets PLUGIN_ROOT for plugin hooks; Copilot CLI sets it too, plus COPILOT_PLUGIN_ROOT;
+# Claude Code sets only CLAUDE_PLUGIN_ROOT.
+CANNOT_ASK = bool(os.environ.get("PLUGIN_ROOT")) and not os.environ.get("COPILOT_PLUGIN_ROOT")
 
 # git global options that take a separate value: `git -C dir commit` is still a commit.
 OPTIONS_WITH_VALUE = {"-c", "-C", "--git-dir", "--work-tree", "--namespace", "--exec-path"}
@@ -62,10 +69,11 @@ def main():
     for segment in re.split(r"&&|\|\||[;|\n]|\$\(|`", command):
         reason = git_reason(segment.strip().lstrip("("))
         if reason:
+            suffix = "; this host cannot ask, so the user must run it" if CANNOT_ASK else ""
             print(json.dumps({"hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
-                "permissionDecision": "ask",
-                "permissionDecisionReason": f"dev-brain: {reason}; it needs your explicit decision.",
+                "permissionDecision": "deny" if CANNOT_ASK else "ask",
+                "permissionDecisionReason": f"dev-brain: {reason}; it needs your explicit decision{suffix}.",
             }}))
             return
 
