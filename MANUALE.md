@@ -43,6 +43,7 @@ claude plugin install dev-brain@dev-brain
 - **Aggiornamento:** `claude plugin marketplace update dev-brain`.
 - **Sviluppo locale:** `claude plugin marketplace add /percorso/agents-platform`. Il plugin viene letto sul posto: le modifiche valgono dalla sessione successiva.
 - **Disinstallazione:** `claude plugin uninstall dev-brain@dev-brain`. I file nelle repository restano.
+- **Codex e Copilot:** installazione, aggiornamento e rimozione sono nella sezione 12.
 
 Il plugin non tocca `CLAUDE.md` né le tue impostazioni: regole e stato arrivano da un hook `SessionStart`.
 
@@ -111,7 +112,7 @@ La regola globale vieta commit, push, cambi di branch e comandi git distruttivi 
 
 Vale anche dentro comandi concatenati (`git add -A && git commit …`), con opzioni globali (`git -C dir commit`), e anche se nelle tue impostazioni hai permesso git: la richiesta arriva comunque. I comandi in sola lettura (`status`, `diff`, `log`, `show`, `stash`, `reset <file>`) passano senza chiedere.
 
-Se rispondi sì, il commit avviene: la decisione resta tua, ed è il punto.
+Se rispondi sì, il commit avviene: la decisione resta tua, ed è il punto. Su Codex non c'è la domanda: il comando viene rifiutato e lo esegui tu (sezione 12).
 
 ---
 
@@ -119,7 +120,7 @@ Se rispondi sì, il commit avviene: la decisione resta tua, ed è il punto.
 
 Subagente `dev-brain:reviewer`, in sola lettura **imposta**. Può usare Read, Grep, Glob e `git diff/log/show/status`; ogni comando che crea, modifica o cancella file chiede la tua approvazione. Rispondi no.
 
-Riporta difetti di correttezza, sicurezza, integrità dei dati o requisiti, separati dai problemi concreti di manutenibilità. Per ogni finding: `file:line`, trigger o scenario, impatto, correzione minima, confidenza. Niente preferenze cosmetiche. Non esegue test o build: li riporta come `NOT RUN`.
+Su Codex non viene caricato, su Copilot non ha git (sezione 12). Riporta difetti di correttezza, sicurezza, integrità dei dati o requisiti, separati dai problemi concreti di manutenibilità. Per ogni finding: `file:line`, trigger o scenario, impatto, correzione minima, confidenza. Niente preferenze cosmetiche. Non esegue test o build: li riporta come `NOT RUN`.
 
 ---
 
@@ -192,7 +193,7 @@ Se trova `codex` o `copilot` nel PATH (o nelle variabili `CODEX` e `COPILOT`, ch
 
 Non valuta la qualità delle risposte. Su GitHub Actions gira a ogni pull request sulle versioni fissate (Claude Code 2.1.325, Codex 0.171.0, Copilot CLI 1.0.114); a ogni push su `main`, ogni lunedì e su richiesta gira anche sulle ultime versioni, per accorgersi presto di un cambiamento.
 
-`core/AGENTS.md` e le skill restano in formati standard: supportare un altro agente in futuro richiede un adattatore, non una riscrittura.
+`core/AGENTS.md` e le skill restano in formati standard. Codex e Copilot si supportano con tre adattamenti (sezione 12); un nuovo workflow richiede anche il suo `agents/openai.yaml` (due righe, `allow_implicit_invocation: false`), altrimenti Codex lo elenca e ne paga il contesto. Un altro agente richiede un adattatore, non una riscrittura.
 
 ---
 
@@ -206,6 +207,10 @@ Non valuta la qualità delle risposte. Su GitHub Actions gira a ogni pull reques
 | Il reviewer chiede di eseguire un comando che scrive | Rispondi no |
 | Claude Code chiede conferma per un `git commit` | È il guard di dev-brain: conferma solo se hai deciso tu di committare |
 | Ho dati sensibili nello stato | Rimuovili subito; non committare |
+| Codex: regole e stato non arrivano, il commit non viene fermato | Gli hook non sono approvati: apri `/hooks` e approva quelli di dev-brain; `codex exec` non avvisa |
+| Codex rifiuta un `git commit` | È voluto: Codex non può chiedere conferma, lo esegui tu |
+| Codex: `review` dice che non c'è un reviewer | Atteso: Codex non carica gli agenti del plugin |
+| Copilot: il reviewer non trova le modifiche | Non ha git: legge solo i file elencati; per un diff completo incollalo tu |
 
 ---
 
@@ -226,10 +231,14 @@ Lo stesso marketplace e lo stesso plugin si installano senza modifiche. Provato 
 | | Codex CLI | Copilot CLI |
 | --- | --- | --- |
 | Installazione | `codex plugin marketplace add Stcant/agents-platform`, poi `codex plugin add dev-brain@dev-brain` | `copilot plugin marketplace add Stcant/agents-platform`, poi `copilot plugin install dev-brain@dev-brain` |
+| Aggiornamento | `codex plugin marketplace upgrade dev-brain`; se aggiorni anche la copia installata NON è stato provato: se la versione non cambia, ripeti `codex plugin add dev-brain@dev-brain` | `copilot plugin marketplace update`, poi `copilot plugin update dev-brain` |
+| Rimozione | `codex plugin remove dev-brain@dev-brain` | `copilot plugin uninstall dev-brain` |
 | Regole e stato | Sì, ma solo dopo che approvi gli hook del plugin con `/hooks`: finché non lo fai regole, stato e guardia git sono spenti senza alcun avviso | Sì |
 | Workflow | `$dev-brain:start`; non costano contesto (file `agents/openai.yaml` in ogni workflow) | Elencati da `copilot skill list`, non costano contesto; la chiamata in sessione interattiva non è stata provata |
 | Commit, push, cambio di branch | **Rifiutati**: gli hook di Codex non sanno chiedere conferma, quindi il comando lo esegui tu | Chiede conferma (la richiesta interattiva non è stata provata; in `-p`, che non può chiedere, rifiuta) |
 | Reviewer | Non viene caricato: `review` lo dice e si ferma | Caricato, in sola lettura ma senza shell: non può lanciare git e legge i file elencati |
+
+Versioni provate: Codex 0.171.0 e Copilot CLI 1.0.114 (Claude Code 2.1.325, in CI anche 2.1.329). La versione minima che funziona non è nota; le più vecchie NON sono state provate. Ho eseguito i comandi di installazione così come scritti, da GitHub: entrambi installano la 2.3.0. I nomi dei workflow in questo manuale sono quelli di Claude Code (`/dev-brain:<nome>`): su Codex scrivi `$dev-brain:<nome>`.
 
 **VS Code (Copilot in modalità agente): NON PROVATO**, non si può eseguire qui. La documentazione dice che i plugin agente leggono il formato Claude: aggiungi `Stcant/agents-platform` dall'editor delle personalizzazioni (Configure Marketplaces) o con l'impostazione `chat.plugins.marketplaces`, poi installa `dev-brain`. Come VS Code carichi hook e agenti di un plugin non è documentato: verifica che le regole arrivino; se non arrivano, incolla `core/AGENTS.md` nelle istruzioni di Copilot.
 

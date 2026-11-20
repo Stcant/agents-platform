@@ -31,14 +31,18 @@ The same marketplace and plugin install unchanged; nothing is copied or forked. 
 | Rules and state | yes | yes, once you trust the plugin's hooks with `/hooks`; until then they are silently off, and so is the git guard | yes |
 | Workflow call | `/dev-brain:start` | `$dev-brain:start` | listed by `copilot skill list`; calling them in an interactive session is NOT RUN |
 | Workflows cost no context | yes | yes, through `agents/openai.yaml` in each workflow | yes |
+| Update | `claude plugin marketplace update dev-brain` | `codex plugin marketplace upgrade dev-brain`; whether it also refreshes the installed copy is NOT RUN, so `codex plugin add dev-brain@dev-brain` again if the version does not change | `copilot plugin marketplace update`, then `copilot plugin update dev-brain` |
+| Remove | `claude plugin uninstall dev-brain@dev-brain` | `codex plugin remove dev-brain@dev-brain` | `copilot plugin uninstall dev-brain` |
 | Commit, push, branch change | asks you | refused: Codex hooks cannot ask, so you run the command | asks you (the interactive prompt is NOT RUN; `-p` mode cannot ask and refuses) |
 | Reviewer | read-only, reads the diff with git | not loaded: `review` says so and stops | read-only, but without a shell: it cannot run git and reads the listed files |
+
+Tested versions: Claude Code 2.1.325 (CI also ran 2.1.329), Codex CLI 0.171.0, Copilot CLI 1.0.114. The oldest version that works is unknown; older releases are NOT RUN. The install commands above were run as written from GitHub (`Stcant/agents-platform`): both Codex and Copilot CLI installed 2.3.0. The workflow names below are written for Claude Code (`/dev-brain:<name>`); on Codex write `$dev-brain:<name>`.
 
 VS Code (Copilot agent mode) is NOT RUN: it cannot be executed here. Its documentation says agent plugins read the Claude format: add `Stcant/agents-platform` in the Customizations editor (Configure Marketplaces) or in the `chat.plugins.marketplaces` setting, then install `dev-brain`. How VS Code loads a plugin's hooks and agents is not documented, so check that the rules arrive; if they do not, paste `core/AGENTS.md` into your Copilot instructions.
 
 ## First step in every repository: `/dev-brain:start`
 
-Run it once in each repository, from its root. Everything else builds on the two files it creates: `resume` and `handoff` read and rewrite the state, every session gets it automatically, and Claude Code reads the project facts natively.
+Run it once in each repository, from its root. Everything else builds on the two files it creates: `resume` and `handoff` read and rewrite the state, every session gets it automatically, and Claude Code reads the project facts natively (Codex and Copilot document the same for `AGENTS.md`; not tested here).
 
 1. Inspects the real repository: stack, commands, conventions, traps. It does not open data directories (`input/`, `output/`, `.env`).
 2. Writes or merges the root `AGENTS.md` as a draft, under 40 lines and only what the code does not show: exact commands, project tooling, decisions that differ from defaults, gotchas. No purpose line, stack list or architecture tour: studies find that such overviews add cost without helping the agent. It also creates or reconciles `.dev-brain/STATE.md` (goal, done with evidence, blockers, next actions, under 3000 characters).
@@ -49,7 +53,7 @@ Then read both files, delete the lines the code already shows, fix anything untr
 
 ## Daily use
 
-Ask Claude Code to implement or fix what you need. The rules already apply; the workflows support the work.
+Ask the agent to implement or fix what you need. The rules already apply; the workflows support the work.
 
 | Workflow | When |
 | --- | --- |
@@ -69,7 +73,7 @@ For planning use Claude Code's native plan mode (Shift+Tab): it is read-only by 
 ## What is enforced, what is instructed
 
 - **No commit without you: enforced.** A `PreToolUse` hook answers "ask" (on Codex, which cannot ask: "deny") for `git commit` (including `--amend`), `push`, `merge`, `rebase`, `cherry-pick`, `revert`, `checkout`/`switch`, history-moving `reset`, `clean -f`, `branch -d/-m/-f`, `stash drop/pop/clear` and tag deletion, even inside chained commands and even when your settings allow git. Read-only git runs normally.
-- **Reviewer read-only: enforced.** Its tool list allows Read, Grep, Glob and `git diff/log/show/status`; any command that creates, changes or removes files needs your approval.
+- **Reviewer read-only: enforced on Claude Code and Copilot CLI** (not loaded on Codex). Its tool list allows Read, Grep, Glob and `git diff/log/show/status`; any command that creates, changes or removes files needs your approval.
 - **State budget: enforced.** Over 3000 characters only a notice is injected, telling the model to read the file and suggest `handoff`.
 - **Everything else is instructed:** rules guide the model; they do not guarantee good code.
 
