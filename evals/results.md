@@ -6,6 +6,28 @@ A log of decisions and the evidence behind them, newest first. Full run details 
 
 Not measured. Real-model evidence so far: one model per scenario, one run, small synthetic Python fixtures; the no-kit baseline already solved every task. The one measured gain is the review policy (below). Next: the same real tasks with and without the plugin, same model; compare tokens per task, fix iterations, review findings, time to resume after a break. Keep what moves the numbers.
 
+## 2026-11-20 — Codex CLI and Copilot (CLI) support, plugin 2.3.0
+
+The user asked to use the plugin in Codex and GitHub Copilot (VS Code). This reverses the 2026-10-25 "Claude Code only" decision; the adapters removed then are not restored. Principle: install the unchanged plugin first and change only what the real binaries show broken.
+
+Read: OpenAI's Codex plugin, skills and hooks pages; VS Code's agent-plugin and hooks references; GitHub's Copilot CLI hooks reference (first 100,000 of 136,092 characters). Run: Codex CLI 0.171.0 and Copilot CLI 1.0.114 (`@github/copilot`, offline with `COPILOT_OFFLINE` and an Anthropic-type provider pointed at the mock).
+
+Worked unchanged on both: `marketplace add` of this repository (Codex reads `.claude-plugin/marketplace.json` as a legacy format), plugin install from `core/.claude-plugin/plugin.json`, all nine skills, `tool_input.command` in the `PreToolUse` payload, and on Copilot the Claude-format `ask`/`deny` answer.
+
+Broken, and fixed:
+1. Codex lists all nine skills, the six workflows included (about 1,090 characters each session): it ignores `disable-model-invocation`. Fix: `agents/openai.yaml` with `policy.allow_implicit_invocation: false` in the six workflows (documented key); the listing drops to the three model-loaded skills and `$dev-brain:<name>` still expands.
+2. Codex cannot ask: the guard's "ask" marks the hook failed and the command runs (observed, as documented). Fix: the guard answers "deny" when `PLUGIN_ROOT` is set without `COPILOT_PLUGIN_ROOT` (Codex sets the first only; Claude Code sets neither). The user then runs the command: stricter than "ask", with no approval path in the chat.
+3. Copilot CLI ignores `hookSpecificOutput.additionalContext` of `SessionStart` and reads a top-level `additionalContext`; rules and state were missing. Fix: the context hook adds that key when `COPILOT_PLUGIN_ROOT` is set. Measured: both keys give one injection on Copilot, Claude Code ignores the extra key, Codex fails the hook on it, hence the condition.
+
+Observed, not changed (documented as limits):
+- Codex runs plugin hooks only after the user trusts them (`/hooks`); `codex exec` prints nothing when they are not, and with them untrusted a `git commit` went through (commits 1 -> 2). Codex does not load the plugin's `agents/reviewer.md`, so `review` stops at its "no reviewer" step by design.
+- Copilot CLI loads the reviewer but its `Bash(git diff:*)` entries map to nothing: the sub-agent gets `view`, `grep` and `glob` only. Read-only holds; it cannot run git and reads the listed files. Giving it a shell would break read-only, so no change.
+- Copilot ignores hook matchers, and its `source` is `new`; the Claude-format hook file still ran.
+
+Evidence: `python3 evals/offline/check.py` ALL PASS, 24 checks (11 Claude Code 2.1.325, 8 Codex 0.171.0, 5 Copilot CLI 1.0.114), about 13 s. Six mutations each failed the intended check: no `openai.yaml` for one workflow, guard always "ask" (Codex: 0/2 refused), no top-level key (Copilot rules missing), top-level key for everyone (Codex rules missing), reviewer with `Bash` (Copilot reviewer tools included `bash`), no hooks (guard and context checks on all three hosts). `claude plugin validate core`: passes with the same warnings as `main`. CI now installs the three CLIs at pinned versions on pull requests and at `@latest` on pushes to `main`, weekly and on demand; `CODEX` and `COPILOT` make their checks required there.
+
+Limits: VS Code is NOT RUN (cannot be executed here); the docs say its Local hook harness reads `hookSpecificOutput`, which the unchanged output satisfies, and that harness is deprecated (removal announced for February 2027), but plugin hook and agent loading in VS Code is undocumented. Calling the workflows in an interactive Copilot session, Copilot's interactive "ask" prompt, and the Codex `/hooks` trust screen are NOT RUN (the binaries were driven non-interactively). No real model was used on any host, so whether the rules improve code there is as unmeasured as on Claude Code. The host markers are env variables read from the binaries' behavior today; if a host changes them the matching check fails.
+
 ## 2026-11-15 — New releases reviewed; state without branch or commit status; CI on the newest Claude Code (plugin 2.2.1)
 
 Read: Anthropic's Opus 5.5 announcement (22 Sep, primary); the Opus 5.5 system card only through two secondary reports (its PDF is not reachable from this environment, so card-level figures are second-hand); TechCrunch on Fable 5.2 / Mythos 5.2 (9 Nov; no system card read); Claude Code's changelog for 2.1.299–2.1.311 (2.1.312–2.1.325 not read) and the `claude plugin eval` docs.
@@ -58,7 +80,7 @@ The no-commit rule was instruction only; the user asked for enforcement. `core/b
 
 ## 2026-10-25 — Claude Code only, distributed as a plugin
 
-The user works with Claude Code only. Adapters for OpenCode, Codex CLI and Cursor were removed; `core/` keeps standard formats (`AGENTS.md`, `SKILL.md`) so another agent remains an adapter away.
+The user works with Claude Code only (reversed on 2026-11-20 for Codex and Copilot, see above). Adapters for OpenCode, Codex CLI and Cursor were removed; `core/` keeps standard formats (`AGENTS.md`, `SKILL.md`) so another agent remains an adapter away.
 
 - Global rules and state come from one `SessionStart` hook (`startup|resume|clear|compact`); no edit to `CLAUDE.md` or settings. Claude Code puts the hook output in a system-role message.
 - Workflows are plugin skills with `disable-model-invocation: true`: not listed in the system prompt (verified), invoked as `/dev-brain:<name>`. The bare `/review` keeps opening Claude Code's built-in review.

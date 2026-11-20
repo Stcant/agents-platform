@@ -1,6 +1,6 @@
 # dev-brain
 
-A Claude Code plugin that steers ordinary coding requests toward readable, maintainable code, keeps each project's state across sessions, and spends as little context as possible. Works with any model Claude Code can use.
+A plugin for Claude Code (also installable in Codex CLI and GitHub Copilot, see below) that steers ordinary coding requests toward readable, maintainable code, keeps each project's state across sessions, and spends as little context as possible. Works with any model the host can use.
 
 It provides:
 - global engineering rules, injected into every session;
@@ -8,7 +8,7 @@ It provides:
 - user-invoked workflows: `start`, `resume`, `handoff`, `impact`, `learn`, `review` (no context cost until invoked);
 - three skills the model loads when relevant: `debugging`, `engineering-risk`, `review-feedback`;
 - a read-only reviewer subagent;
-- a guard that makes Claude Code ask you before any commit, push or destructive git command.
+- a guard that makes the host ask you before any commit, push or destructive git command (Codex refuses instead, see below).
 
 > Manuale utente in italiano: [MANUALE.md](MANUALE.md).
 
@@ -20,6 +20,21 @@ claude plugin install dev-brain@dev-brain
 ```
 
 Requires `python3` and `git`. Update with `claude plugin marketplace update dev-brain`. For local development, add the cloned folder instead: `claude plugin marketplace add /path/to/agents-platform` (read in place).
+
+## Codex and GitHub Copilot
+
+The same marketplace and plugin install unchanged; nothing is copied or forked. Checked with the real binaries against a mock model (`python3 evals/offline/check.py`), not with a real model.
+
+| | Claude Code | Codex CLI | Copilot CLI |
+| --- | --- | --- | --- |
+| Install | `claude plugin marketplace add Stcant/agents-platform`, then `claude plugin install dev-brain@dev-brain` | `codex plugin marketplace add Stcant/agents-platform`, then `codex plugin add dev-brain@dev-brain` | `copilot plugin marketplace add Stcant/agents-platform`, then `copilot plugin install dev-brain@dev-brain` |
+| Rules and state | yes | yes, once you trust the plugin's hooks with `/hooks`; until then they are silently off, and so is the git guard | yes |
+| Workflow call | `/dev-brain:start` | `$dev-brain:start` | listed by `copilot skill list`; calling them in an interactive session is NOT RUN |
+| Workflows cost no context | yes | yes, through `agents/openai.yaml` in each workflow | yes |
+| Commit, push, branch change | asks you | refused: Codex hooks cannot ask, so you run the command | asks you (the interactive prompt is NOT RUN; `-p` mode cannot ask and refuses) |
+| Reviewer | read-only, reads the diff with git | not loaded: `review` says so and stops | read-only, but without a shell: it cannot run git and reads the listed files |
+
+VS Code (Copilot agent mode) is NOT RUN: it cannot be executed here. Its documentation says agent plugins read the Claude format: add `Stcant/agents-platform` in the Customizations editor (Configure Marketplaces) or in the `chat.plugins.marketplaces` setting, then install `dev-brain`. How VS Code loads a plugin's hooks and agents is not documented, so check that the rules arrive; if they do not, paste `core/AGENTS.md` into your Copilot instructions.
 
 ## First step in every repository: `/dev-brain:start`
 
@@ -53,7 +68,7 @@ For planning use Claude Code's native plan mode (Shift+Tab): it is read-only by 
 
 ## What is enforced, what is instructed
 
-- **No commit without you: enforced.** A `PreToolUse` hook answers "ask" for `git commit` (including `--amend`), `push`, `merge`, `rebase`, `cherry-pick`, `revert`, `checkout`/`switch`, history-moving `reset`, `clean -f`, `branch -d/-m/-f`, `stash drop/pop/clear` and tag deletion, even inside chained commands and even when your settings allow git. Read-only git runs normally.
+- **No commit without you: enforced.** A `PreToolUse` hook answers "ask" (on Codex, which cannot ask: "deny") for `git commit` (including `--amend`), `push`, `merge`, `rebase`, `cherry-pick`, `revert`, `checkout`/`switch`, history-moving `reset`, `clean -f`, `branch -d/-m/-f`, `stash drop/pop/clear` and tag deletion, even inside chained commands and even when your settings allow git. Read-only git runs normally.
 - **Reviewer read-only: enforced.** Its tool list allows Read, Grep, Glob and `git diff/log/show/status`; any command that creates, changes or removes files needs your approval.
 - **State budget: enforced.** Over 3000 characters only a notice is injected, telling the model to read the file and suggest `handoff`.
 - **Everything else is instructed:** rules guide the model; they do not guarantee good code.
@@ -61,10 +76,10 @@ For planning use Claude Code's native plan mode (Shift+Tab): it is read-only by 
 ## Evaluation
 
 ```bash
-python3 evals/offline/check.py        # CLAUDE=<binary> if claude is not on PATH
+python3 evals/offline/check.py        # CLAUDE / CODEX / COPILOT=<binary> if not on PATH
 ```
 
-Installs the plugin into a throwaway home, replaces the model with a local mock that records every request, and checks in about 20 seconds, at zero token cost: rules and state reach the session, oversized state becomes a notice, workflows expand and stay out of the skill listing, the reviewer reads the diff but cannot write, and commit and push need you even when your settings allow git. GitHub Actions runs it on every pull request (`.github/workflows/offline-check.yml`, Claude Code pinned to 2.1.325, no secrets); pushes to `main`, a weekly run and manual runs also test the newest Claude Code release. It does not judge model behavior; `evals/scenarios/` describes the real-model scenarios and `evals/results.md` records decisions and evidence.
+Installs the plugin into a throwaway home, replaces the model with a local mock that records every request, and checks in about 20 seconds, at zero token cost. Claude Code (required): rules and state reach the session, oversized state becomes a notice, workflows expand and stay out of the skill listing, the reviewer reads the diff but cannot write, and commit and push need you even when your settings allow git. Codex CLI and Copilot CLI (run when found; an explicit `CODEX` or `COPILOT` variable makes them required): rules and state arrive, workflows stay out of the skill listing, commit and push are stopped, and Copilot's reviewer has no shell. GitHub Actions runs it on every pull request (`.github/workflows/offline-check.yml`, Claude Code 2.1.325, Codex 0.171.0, Copilot CLI 1.0.114, no secrets); pushes to `main`, a weekly run and manual runs also test the newest releases. It does not judge model behavior; `evals/scenarios/` describes the real-model scenarios and `evals/results.md` records decisions and evidence.
 
 ## Layout
 
