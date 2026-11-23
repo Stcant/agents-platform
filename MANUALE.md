@@ -252,4 +252,4 @@ Poi in `~/.config/opencode/opencode.json` (o nell'`opencode.json` di un progetto
 
 **`--auto` annulla la guardia.** `opencode run --auto` approva ogni richiesta, comprese quelle di dev-brain: usalo solo dove accetti commit e push senza controllo.
 
-Versione provata: OpenCode 2.3.2, con la sua API plugin V2; OpenCode 1.x NON è stato provato. La 2.4.0 NON è stata provata (il pacchetto non si poteva scaricare qui; la CI prova l'ultima versione). I nomi dei workflow in questo manuale sono quelli di Claude Code (`/dev-brain:<nome>`): su OpenCode usa il nome nudo (`@start`).
+Versioni provate: OpenCode 2.3.2 (qui e in CI) e 2.4.0 (in CI, l'ultima al momento della scrittura), con la loro API plugin V2; OpenCode 1.x NON è stato provato. I nomi dei workflow in questo manuale sono quelli di Claude Code (`/dev-brain:<nome>`): su OpenCode usa il nome nudo (`@start`).

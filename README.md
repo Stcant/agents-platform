@@ -45,7 +45,7 @@ Requires `python3` and `git`; without `python3` the adapter asks before every sh
 | Commit, push, branch change | asks you | asks you (the interactive prompt is NOT RUN); `opencode run` cannot ask and refuses; `opencode run --auto` approves it |
 | Reviewer | read-only, reads the diff with git | read-only, reads the diff with git; redirections and `--output` are denied by name because OpenCode's shell matcher does not parse them |
 
-Tested version: OpenCode 2.3.2, through its V2 plugin API; OpenCode 1.x is NOT RUN. 2.4.0 is NOT RUN: its package could not be downloaded here, and CI tests the newest release. The workflow names below are written for Claude Code (`/dev-brain:<name>`); in OpenCode use the bare name (`@start`).
+Tested versions: OpenCode 2.3.2 here and in CI, and 2.4.0 in CI (the newest release when written), through the V2 plugin API; OpenCode 1.x is NOT RUN. The workflow names below are written for Claude Code (`/dev-brain:<name>`); in OpenCode use the bare name (`@start`).
 
 ## First step in every repository: `/dev-brain:start`
 
