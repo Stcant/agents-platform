@@ -14,12 +14,12 @@ Plugin (Claude Code, plus an OpenCode adapter) for readable, maintainable code a
 - Benefit of the rules on real code — status: NOT RUN; `claude plugin eval` (with/without plugin) would measure it but needs the user's credentials and tokens
 - Minimal `start` with a real model — status: partly seen on Presidio (deny rules and Stop hook adopted, `AGENTS.md` kept, not trimmed); its deletion-candidate list not seen
 - Opus 5.5 system card read only through secondary reports (PDF unreachable here)
-- OpenCode TUI (the interactive ask prompt, `@start`) and OpenCode 1.x — status: NOT RUN (the TUI cannot be driven here)
+- OpenCode 1.x — status: NOT RUN; the TUI cannot be driven here (the user's own trial of `@start` and the commit prompt is the only evidence)
 
 ## Known pre-existing failures
 - none
 
 ## Next (max 3)
-1. User: adapter installed from `main` (user-run: `opencode debug agents` lists `reviewer`); still to try in the TUI: `@start` and a commit (the guard's ask prompt), then report what appears.
+1. Nothing pending for OpenCode: the user ran `@start` and the commit prompt in the TUI (reported working, version not recorded).
 2. User decision: draft a `claude plugin eval` suite (authorization, weakened tests, `start` size) and run it with `--max-cost-usd`.
 3. Collect Presidio feedback: `/context all` from a fresh session, the `start` candidate list; change only what repeats twice.

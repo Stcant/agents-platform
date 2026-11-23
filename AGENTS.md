@@ -12,7 +12,7 @@ Its primary goal is readable, maintainable code across languages and frameworks.
 - `core/bin/dev-brain-guard` — `PreToolUse` hook that answers "ask" for git commands changing history, branches or the remote; keep its list in sync with the Authorization rules in `core/AGENTS.md`.
 - `adapters/opencode/index.ts` — OpenCode has no plugin marketplace, so this one file runs `dev-brain-context` and `dev-brain-guard`, registers `core/skills` and builds the reviewer from `core/agents/reviewer.md`. It holds no rule of its own: change the rule in `core/`, not here. Its one extra line of policy is the reviewer's denial of redirections, which OpenCode's shell matcher does not parse.
 - `core/.claude-plugin/plugin.json` — bump `version` on every change so installed copies refresh. `.claude-plugin/marketplace.json` at the root lists the plugin.
-- `evals/` — scenarios, measured results, and `offline/check.py` with `offline/mock_model.py`, a zero-token check against the real Claude Code and OpenCode binaries. The OpenCode TUI cannot run here, so it is untested.
+- `evals/` — scenarios, measured results, and `offline/check.py` with `offline/mock_model.py`, a zero-token check against the real Claude Code and OpenCode binaries. The OpenCode TUI cannot run here; only the maintainer's own trial covers it.
 
 ## Changing the harness
 
