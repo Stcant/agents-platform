@@ -1,7 +1,7 @@
 """Local model endpoint that records requests and replays scripted replies.
 
-Speaks two wire formats: Anthropic Messages (Claude Code, and Copilot CLI configured
-with its Anthropic provider) and OpenAI Responses (Codex CLI, `/responses`).
+Speaks two wire formats: Anthropic Messages (Claude Code) and OpenAI chat completions
+(OpenCode, `/chat/completions`).
 
 Requests that offer tools are agent-loop calls: each one pops the first scripted step
 whose optional "when" / "unless" text matches the request, either
@@ -35,7 +35,7 @@ class MockModel:
                 with mock.lock:
                     mock.requests.append(body)
                     step = mock.next_step(body)
-                (self._responses if path.endswith("/responses") else self._reply)(body, step)
+                (self._chat if path.endswith("/chat/completions") else self._reply)(body, step)
 
             def _json(self, payload):
                 data = json.dumps(payload).encode()
@@ -51,29 +51,27 @@ class MockModel:
                 self.send_header("connection", "close")
                 self.end_headers()
                 for name, data in events:
-                    self.wfile.write(f"event: {name}\ndata: {json.dumps(data)}\n\n".encode())
+                    prefix = f"event: {name}\n" if name else ""
+                    self.wfile.write(f"{prefix}data: {json.dumps(data)}\n\n".encode())
                 self.wfile.flush()
                 self.close_connection = True
 
-            def _responses(self, body, step):
-                n = len(mock.requests)
+            def _chat(self, body, step):
+                call_id = f"call_{len(mock.requests)}"
                 if "tool" in step:
-                    item = {"type": "function_call", "id": f"fc_{n}", "call_id": f"call_{n}", "name": step["tool"],
-                            "arguments": json.dumps(step["args"]), "status": "completed"}
+                    delta = {"role": "assistant", "tool_calls": [{"index": 0, "id": call_id, "type": "function",
+                             "function": {"name": step["tool"], "arguments": json.dumps(step["args"])}}]}
+                    finish = "tool_calls"
                 else:
-                    item = {"type": "message", "id": f"msg_{n}", "role": "assistant", "status": "completed",
-                            "content": [{"type": "output_text", "text": step["text"], "annotations": []}]}
-                usage = {"input_tokens": 1, "input_tokens_details": {"cached_tokens": 0}, "output_tokens": 1,
-                         "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 2}
-                response = {"id": f"resp_{n}", "object": "response", "status": "in_progress", "model": "mock", "output": []}
+                    delta, finish = {"role": "assistant", "content": step["text"]}, "stop"
+                base = {"id": "c", "object": "chat.completion.chunk", "created": 0, "model": "mock"}
                 self._sse([
-                    ("response.created", {"type": "response.created", "response": response}),
-                    ("response.output_item.added", {"type": "response.output_item.added", "output_index": 0,
-                                                    "item": dict(item, status="in_progress")}),
-                    ("response.output_item.done", {"type": "response.output_item.done", "output_index": 0, "item": item}),
-                    ("response.completed", {"type": "response.completed",
-                                            "response": dict(response, status="completed", output=[item], usage=usage)}),
+                    (None, {**base, "choices": [{"index": 0, "delta": delta, "finish_reason": None}]}),
+                    (None, {**base, "choices": [{"index": 0, "delta": {}, "finish_reason": finish}],
+                            "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}}),
                 ])
+                self.wfile.write(b"data: [DONE]\n\n")
+                self.wfile.flush()
 
             def _reply(self, body, step):
                 if "tool" in step:
