@@ -2,11 +2,9 @@
 """SessionStart hook: give the agent the global rules and the project's saved state.
 
 Claude Code runs it at startup, resume, /clear and after compaction, and adds the
-printed `additionalContext` to the session; Codex does the same with the same output.
-Copilot CLI ignores the `hookSpecificOutput` form and reads a top-level
-`additionalContext` instead (Codex rejects that key, so only Copilot gets it). The
-project is found from the hook's JSON on stdin (`cwd`), else from the current
-directory. `--text` prints the plain context instead, for checking it by hand.
+printed `additionalContext` to the session. The project is found from the hook's
+JSON on stdin (`cwd`), else from the current directory. `--text` prints the plain
+context instead, for checking it by hand.
 """
 import json
 import os
@@ -75,10 +73,7 @@ def main():
     if "--text" in sys.argv:
         print(context)
     else:
-        output = {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}}
-        if os.environ.get("COPILOT_PLUGIN_ROOT"):
-            output["additionalContext"] = context
-        print(json.dumps(output))
+        print(json.dumps({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}}))
 
 
 if __name__ == "__main__":

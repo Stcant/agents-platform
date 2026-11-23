@@ -6,7 +6,25 @@ A log of decisions and the evidence behind them, newest first. Full run details 
 
 Not measured. Real-model evidence so far: one model per scenario, one run, small synthetic Python fixtures; the no-kit baseline already solved every task. The one measured gain is the review policy (below). Next: the same real tasks with and without the plugin, same model; compare tokens per task, fix iterations, review findings, time to resume after a break. Keep what moves the numbers.
 
-## 2026-11-20 — Codex CLI and Copilot (CLI) support, plugin 2.3.0
+## 2026-11-23 — Codex and Copilot support removed; OpenCode adapter, plugin 2.4.0
+
+The user dropped Codex and GitHub Copilot and asked for the harness to work well in OpenCode. This supersedes the 2026-11-20 entry below (kept as history). Removed: the six `agents/openai.yaml`, the guard's "deny" mode, the context hook's Copilot key, the Codex and Copilot checks, their mock handler and the CI installs; `core/bin/*` are byte-identical to 2.2.1. Kept from that change: the `make_repo` and `commit_count` helpers of the check.
+
+Read: OpenCode's skills page and the plugin server API page; the 2.3.2 plugin type declarations. Run: OpenCode 2.3.2 (`@opencode/cli`; 2.4.0 is listed but its package did not download here). OpenCode has no marketplace and does not read Claude plugins, so a plugin file is the adapter; one probe plugin logged each hook's event.
+
+Worked without a change: OpenCode reads the project `AGENTS.md`; `disable-model-invocation: true` hides a skill from the listing and the `skill` tool still loads it by id.
+
+Needed an adapter (`adapters/opencode/index.ts`, no rule of its own):
+1. Rules and state: the `context` hook runs `core/bin/dev-brain-context --text` for the main session. A subagent is told apart by `parentID` of its session (observed: set for `explore`, absent for the main session) and gets neither, as on Claude Code.
+2. Git guard: the `permission` `evaluate` hook runs `core/bin/dev-brain-guard` on each shell command and sets the effect to "ask" for its answer; an explicit deny in the user's config never reaches the hook. If the script cannot run (checked with a failing `python3`), every shell command is asked, not allowed.
+3. Skills: `skill.transform` adds `core/skills/*/SKILL.md` with `autoinvoke` taken from `disable-model-invocation`; the loaded skill keeps its base directory and `references/` files.
+4. Reviewer: `agent.transform` creates it (`update` on an unknown id creates the agent) from the body of `core/agents/reviewer.md` as the system prompt and its `tools` line as permissions: deny everything, allow `read`, `grep`, `glob` and the `git diff/log/show/status` shell commands, keep the base "ask" rules for `.env`. OpenCode's shell matcher splits chained commands and sees `$(...)` and backticks, but not redirections: `git diff HEAD > f` and `git diff --output=f` were allowed until two explicit denies (`* --output*`, `*>*`) were added; the same gap was recorded for OpenCode 2.1 in the 2026-10-25 "Review and state token cost" entry.
+
+Evidence: `python3 evals/offline/check.py` ALL PASS, 20 checks (11 Claude Code 2.1.325, 9 OpenCode 2.3.2), about 26 s: rules and state reach the main session and not the subagent, workflows are out of the skill listing and load by id, the reviewer reads the diff and 5 write attempts (`>`, `--output`, `rm`, `$(...)`, backticks) are rejected, `git status` runs while commit and push are refused with a git identity present, and an oversized state becomes a notice. Six mutations each failed the intended check: no context hook, context for subagents, no guard, no redirection denies (3/5 rejected), workflows offered, no reviewer. The adapter type-checks against the 2.3.2 plugin types.
+
+Limits: the TUI is NOT RUN, so the interactive "ask" prompt and the `@start` mention are untested (in `opencode run` an ask is rejected and `@start` is not expanded). `opencode run --auto` approves the guard's ask (observed: the commit ran); it is the equivalent of Claude Code's bypass mode. OpenCode 1.x and 2.4.0 are NOT RUN. The hook shapes come from 2.3.2 behavior and type declarations, not a stability promise: CI pins 2.3.2 on pull requests and runs `@latest` weekly to see a change. No real model was used. Install is by path (`plugins` in `opencode.json`), because the adapter lives in a repository that is not an npm package; `opencode plugin add` takes npm or git packages and was not used.
+
+## 2026-11-20 — Codex CLI and Copilot (CLI) support, plugin 2.3.0 (removed on 2026-11-23, see above)
 
 The user asked to use the plugin in Codex and GitHub Copilot (VS Code). This reverses the 2026-10-25 "Claude Code only" decision; the adapters removed then are not restored. Principle: install the unchanged plugin first and change only what the real binaries show broken.
 

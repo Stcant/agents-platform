@@ -1,6 +1,6 @@
 # Maintaining dev-brain
 
-This repository is a plugin marketplace with one plugin, `dev-brain`, in `core/`, built for Claude Code. Codex CLI and Copilot read the same marketplace and plugin unchanged; the few host differences are listed below. It is not an application.
+This repository is a plugin marketplace with one plugin, `dev-brain`, in `core/`, built for Claude Code, with an adapter for OpenCode in `adapters/opencode/`. It is not an application.
 Its primary goal is readable, maintainable code across languages and frameworks. Workflows and saved state support that goal.
 
 ## What belongs where
@@ -8,11 +8,11 @@ Its primary goal is readable, maintainable code across languages and frameworks.
 - `core/AGENTS.md` — the global rules, injected into every session by the `SessionStart` hook. Keep it short: only instructions that change default behavior.
 - `core/skills/` — Agent Skills. User-invoked workflows (`start`, `resume`, `handoff`, `impact`, `learn`, `review`) set `disable-model-invocation: true`, so they cost no context until invoked; `debugging`, `engineering-risk`, `review-feedback` are loaded by the model when relevant.
 - `core/agents/reviewer.md` — the read-only reviewer; its `tools` line is the enforcement.
-- `core/hooks/hooks.json` + `core/bin/dev-brain-context` — inject rules and the project state (3000-character budget). Copilot CLI also needs a top-level `additionalContext`, which Codex rejects, so the script adds it only when `COPILOT_PLUGIN_ROOT` is set.
-- `core/bin/dev-brain-guard` — `PreToolUse` hook that answers "ask" for git commands changing history, branches or the remote; keep its list in sync with the Authorization rules in `core/AGENTS.md`. Codex cannot ask (an "ask" fails the hook and the command runs), so there it answers "deny".
-- `core/skills/<workflow>/agents/openai.yaml` — Codex ignores `disable-model-invocation`; this file (`allow_implicit_invocation: false`) keeps the six workflows out of its skill listing. Add one to every new workflow skill.
+- `core/hooks/hooks.json` + `core/bin/dev-brain-context` — inject rules and the project state (3000-character budget).
+- `core/bin/dev-brain-guard` — `PreToolUse` hook that answers "ask" for git commands changing history, branches or the remote; keep its list in sync with the Authorization rules in `core/AGENTS.md`.
+- `adapters/opencode/index.ts` — OpenCode has no plugin marketplace, so this one file runs `dev-brain-context` and `dev-brain-guard`, registers `core/skills` and builds the reviewer from `core/agents/reviewer.md`. It holds no rule of its own: change the rule in `core/`, not here. Its one extra line of policy is the reviewer's denial of redirections, which OpenCode's shell matcher does not parse.
 - `core/.claude-plugin/plugin.json` — bump `version` on every change so installed copies refresh. `.claude-plugin/marketplace.json` at the root lists the plugin.
-- `evals/` — scenarios, measured results, and `offline/check.py` with `offline/mock_model.py`, a zero-token check against the real Claude Code, Codex CLI and Copilot CLI binaries. VS Code cannot run here, so it is untested.
+- `evals/` — scenarios, measured results, and `offline/check.py` with `offline/mock_model.py`, a zero-token check against the real Claude Code and OpenCode binaries. The OpenCode TUI cannot run here, so it is untested.
 
 ## Changing the harness
 
@@ -27,7 +27,7 @@ Never add rules by intuition alone. A rule that the model already follows is pur
 ## Constraints
 
 - All kit content is English. Exception: `MANUALE.md` is the Italian user manual.
-- Runtime dependencies: Claude Code, `python3`, `git`.
-- Skills and rules stay in standard formats (`AGENTS.md`, `SKILL.md`) with no absolute paths, so another agent is supported with an adapter instead of a rewrite. Host-specific code stays limited to the items above.
+- Runtime dependencies: Claude Code or OpenCode, `python3`, `git`.
+- Skills and rules stay in standard formats (`AGENTS.md`, `SKILL.md`) with no absolute paths, so another agent is supported with an adapter instead of a rewrite. Host-specific code stays limited to `adapters/`.
 - Do not duplicate a rule or template across files: `core/` holds each once.
 - Do not copy project facts (stack, commands, state) from a destination repository into this source repository.
