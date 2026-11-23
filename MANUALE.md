@@ -239,7 +239,7 @@ Poi in `~/.config/opencode/opencode.json` (o nell'`opencode.json` di un progetto
 ```
 
 - **Verifica:** `opencode debug agents` deve elencare `reviewer`.
-- **Aggiornamento:** `git -C /percorso/agents-platform pull`.
+- **Aggiornamento:** `git -C /percorso/agents-platform pull`, poi riavvia OpenCode; se `opencode service status` mostra un server in background attivo, riavvia anche quello con `opencode service restart` (qui ogni nuovo `opencode run` rileggeva i file modificati, ma un server rimasto acceso a lungo NON è stato provato).
 - **Rimozione:** togli la voce da `plugins`.
 
 | | Claude Code | OpenCode |

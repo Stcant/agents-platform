@@ -35,7 +35,7 @@ Then add the adapter to `plugins` in `~/.config/opencode/opencode.json` (or in a
 { "plugins": ["/path/to/agents-platform/adapters/opencode"] }
 ```
 
-Requires `python3` and `git`; without `python3` the adapter asks before every shell command. Update with `git -C /path/to/agents-platform pull`; remove by deleting the entry. Check the install with `opencode debug agents`: it must list `reviewer`.
+Requires `python3` and `git`; without `python3` the adapter asks before every shell command. Update with `git -C /path/to/agents-platform pull`, then start OpenCode again; if `opencode service status` shows a running background server, `opencode service restart` it too (each new `opencode run` re-read the edited files here, but a long-running server was NOT RUN). Remove by deleting the entry. Check the install with `opencode debug agents`: it must list `reviewer`.
 
 | | Claude Code | OpenCode |
 | --- | --- | --- |

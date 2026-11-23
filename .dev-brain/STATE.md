@@ -5,7 +5,7 @@ Updated: 2026-11-23
 Plugin (Claude Code, plus an OpenCode adapter) for readable, maintainable code at the lowest context cost — acceptance: installs from GitHub with two commands, every claim backed by `evals/` evidence, measured benefit on real tasks.
 
 ## Done (latest first, max 5)
-- Plugin 2.4.0 on branch `feat/opencode-adapter`, PR #9 open and not merged: Codex and Copilot support removed (user decision), OpenCode adapter `adapters/opencode/index.ts` added — evidence: `python3 evals/offline/check.py` ALL PASS (20 checks: 11 Claude Code 2.1.325, 9 OpenCode 2.3.2), six adapter mutations each FAIL the intended check; PR #9 CI success on both jobs (newest: Claude Code 2.1.330, OpenCode 2.4.0)
+- Plugin 2.4.0 merged (PR #9, 2fc3c7e): Codex and Copilot support removed (user decision), OpenCode adapter `adapters/opencode/index.ts` added — evidence: `python3 evals/offline/check.py` ALL PASS (20 checks: 11 Claude Code 2.1.325, 9 OpenCode 2.3.2), six adapter mutations each FAIL the intended check; PR #9 CI success on both jobs (newest: Claude Code 2.1.330, OpenCode 2.4.0)
 - Plugin 2.2.1 merged (PR #6): `handoff` stops writing branch/HEAD/commit status, CI pin 2.1.325 plus a newest-release job — evidence: CI success on both jobs; weekly schedule NOT RUN until it first fires
 - Offline check on GitHub Actions for every PR — evidence: PR #5 run `offline-check` success, ALL PASS on a clean runner
 - Plugin 2.2.0 merged (PR #4): minimal `start`, review passes the Goal line, reviewer checks weakened tests — evidence: `python3 evals/offline/check.py` ALL PASS on a clean clone of main (0d01d2b)
@@ -20,6 +20,6 @@ Plugin (Claude Code, plus an OpenCode adapter) for readable, maintainable code a
 - none
 
 ## Next (max 3)
-1. User: review the PR; after merging, add `adapters/opencode` to `plugins` in `opencode.json`, run `opencode debug agents` (must list `reviewer`), then try `@start` and a commit in the TUI.
+1. User: adapter installed from `main` (user-run: `opencode debug agents` lists `reviewer`); still to try in the TUI: `@start` and a commit (the guard's ask prompt), then report what appears.
 2. User decision: draft a `claude plugin eval` suite (authorization, weakened tests, `start` size) and run it with `--max-cost-usd`.
 3. Collect Presidio feedback: `/context all` from a fresh session, the `start` candidate list; change only what repeats twice.
