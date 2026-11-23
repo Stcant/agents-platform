@@ -218,7 +218,7 @@ Non valuta la qualità delle risposte. Su GitHub Actions gira a ogni pull reques
 - Il controllo offline verifica cosa il kit invia e permette, non le risposte.
 - Il reviewer chiede approvazione per le scritture: se approvi, scrive.
 - Le regole costano circa 1200 token per sessione; se rendano non è ancora dimostrato.
-- OpenCode è provato solo con il modello finto e con `opencode run`; il TUI non è stato eseguito (sezione 12).
+- OpenCode è provato con il modello finto e con `opencode run`; il TUI qui non si può eseguire: lo ha provato il manutentore a mano (`@start` e richiesta di conferma sul commit), senza registrare la versione (sezione 12).
 
 ---
 
