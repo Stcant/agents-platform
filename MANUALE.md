@@ -112,7 +112,7 @@ La regola globale vieta commit, push, cambi di branch e comandi git distruttivi 
 
 Vale anche dentro comandi concatenati (`git add -A && git commit …`), con opzioni globali (`git -C dir commit`), e anche se nelle tue impostazioni hai permesso git: la richiesta arriva comunque. I comandi in sola lettura (`status`, `diff`, `log`, `show`, `stash`, `reset <file>`) passano senza chiedere.
 
-Se rispondi sì, il commit avviene: la decisione resta tua, ed è il punto. Su OpenCode la richiesta compare nel TUI (la richiesta interattiva non è stata provata) e `opencode run` rifiuta (sezione 12).
+Se rispondi sì, il commit avviene: la decisione resta tua, ed è il punto. Su OpenCode la richiesta compare nel TUI (provato nel TUI dal manutentore, versione non registrata) e `opencode run` rifiuta (sezione 12).
 
 ---
 
@@ -239,15 +239,15 @@ Poi in `~/.config/opencode/opencode.json` (o nell'`opencode.json` di un progetto
 ```
 
 - **Verifica:** `opencode debug agents` deve elencare `reviewer`.
-- **Aggiornamento:** `git -C /percorso/agents-platform pull`.
+- **Aggiornamento:** `git -C /percorso/agents-platform pull`, poi riavvia OpenCode; se `opencode service status` mostra un server in background attivo, riavvia anche quello con `opencode service restart` (qui ogni nuovo `opencode run` rileggeva i file modificati, ma un server rimasto acceso a lungo NON è stato provato).
 - **Rimozione:** togli la voce da `plugins`.
 
 | | Claude Code | OpenCode |
 | --- | --- | --- |
 | Regole e stato | ogni sessione | solo sessione principale, non i subagenti |
-| Workflow | `/dev-brain:start` | `@start` nel prompt, oppure chiedi di caricare la skill `start` (la skill si carica per id: provato; la forma `@` segue la documentazione di OpenCode e NON è provata, serve il TUI) |
+| Workflow | `/dev-brain:start` | `@start` nel prompt, oppure chiedi di caricare la skill `start` (la skill si carica per id: provato qui; la forma `@` ha funzionato nel TUI sulla macchina del manutentore, versione non registrata) |
 | Costo di contesto dei workflow | nullo | nullo: non compaiono nell'elenco delle skill |
-| Commit, push, cambio di branch | chiede conferma | chiede conferma (la richiesta interattiva NON è stata provata); `opencode run` non può chiedere e rifiuta; `opencode run --auto` approva |
+| Commit, push, cambio di branch | chiede conferma | chiede conferma (provato nel TUI dal manutentore, versione non registrata); `opencode run` non può chiedere e rifiuta; `opencode run --auto` approva |
 | Reviewer | sola lettura, legge il diff con git | sola lettura, legge il diff con git; redirezioni e `--output` sono negati per nome perché il filtro dei comandi di OpenCode non le interpreta |
 
 **`--auto` annulla la guardia.** `opencode run --auto` approva ogni richiesta, comprese quelle di dev-brain: usalo solo dove accetti commit e push senza controllo.

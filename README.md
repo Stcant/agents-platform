@@ -35,14 +35,14 @@ Then add the adapter to `plugins` in `~/.config/opencode/opencode.json` (or in a
 { "plugins": ["/path/to/agents-platform/adapters/opencode"] }
 ```
 
-Requires `python3` and `git`; without `python3` the adapter asks before every shell command. Update with `git -C /path/to/agents-platform pull`; remove by deleting the entry. Check the install with `opencode debug agents`: it must list `reviewer`.
+Requires `python3` and `git`; without `python3` the adapter asks before every shell command. Update with `git -C /path/to/agents-platform pull`, then start OpenCode again; if `opencode service status` shows a running background server, `opencode service restart` it too (each new `opencode run` re-read the edited files here, but a long-running server was NOT RUN). Remove by deleting the entry. Check the install with `opencode debug agents`: it must list `reviewer`.
 
 | | Claude Code | OpenCode |
 | --- | --- | --- |
 | Rules and saved state | every session | main session only, not subagents |
-| Workflow call | `/dev-brain:start` | `@start` in the prompt, or ask the agent to load the skill `start` (the skill tool loads it by id: tested; the `@` form follows the OpenCode docs and is NOT RUN, since it needs the TUI) |
+| Workflow call | `/dev-brain:start` | `@start` in the prompt, or ask the agent to load the skill `start` (the skill tool loads it by id: tested here; the `@` form worked in the TUI on the maintainer's machine, OpenCode version not recorded) |
 | Workflows cost no context | yes | yes: not in the skill listing |
-| Commit, push, branch change | asks you | asks you (the interactive prompt is NOT RUN); `opencode run` cannot ask and refuses; `opencode run --auto` approves it |
+| Commit, push, branch change | asks you | asks you (seen in the TUI on the maintainer's machine, version not recorded); `opencode run` cannot ask and refuses; `opencode run --auto` approves it |
 | Reviewer | read-only, reads the diff with git | read-only, reads the diff with git; redirections and `--output` are denied by name because OpenCode's shell matcher does not parse them |
 
 Tested versions: OpenCode 2.3.2 here and in CI, and 2.4.0 in CI (the newest release when written), through the V2 plugin API; OpenCode 1.x is NOT RUN. The workflow names below are written for Claude Code (`/dev-brain:<name>`); in OpenCode use the bare name (`@start`).
